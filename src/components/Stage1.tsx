@@ -261,7 +261,7 @@ const Stage1: React.FC<Stage1Props> = ({ onNext }) => {
 
         <div className="form-actions">
           <button type="submit" className="btn btn-primary" disabled={isLoading}>
-            {isLoading ? 'Saving...' : (isEditing ? 'Update' : 'Save')}
+            {isLoading ? 'Saving...' : (isEditing ? 'Update' : 'Add')}
           </button>
           {isEditing && (
             <button type="button" onClick={resetForm} className="btn btn-secondary">
