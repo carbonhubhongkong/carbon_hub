@@ -69,12 +69,12 @@ const Stage1: React.FC<Stage1Props> = ({ onNext }) => {
     setIsLoading(true);
 
     try {
-      const url = isEditing 
+      const url = isEditing
         ? `/api/emission-factors/general/${editingId}`
         : '/api/emission-factors/general';
-      
+
       const method = isEditing ? 'PUT' : 'POST';
-      
+
       const response = await fetch(url, {
         method,
         headers: {
@@ -124,7 +124,7 @@ const Stage1: React.FC<Stage1Props> = ({ onNext }) => {
   return (
     <div className="stage">
       <h2 className="stage-title">Input Emission Factors</h2>
-      
+
       <form onSubmit={handleSubmit} className="emission-form">
         {/* General Section */}
         <div className="form-section">
@@ -144,15 +144,18 @@ const Stage1: React.FC<Stage1Props> = ({ onNext }) => {
             </div>
             <div className="form-group">
               <label htmlFor="scope">Scope *</label>
-              <input
-                type="text"
-                id="scope"
-                name="scope"
-                value={formData.scope}
-                onChange={handleInputChange}
-                required
-                className="form-input"
-              />
+            <select
+              id="scope"
+              name="scope"
+              value={formData.scope}
+              onChange={handleInputChange}
+              required
+              className="form-input"
+            >
+              <option value="Scope 1">Scope 1</option>
+              <option value="Scope 2">Scope 2</option>
+              <option value="Scope 3">Scope 3</option>
+            </select>
             </div>
             <div className="form-group">
               <label htmlFor="category">Category *</label>
