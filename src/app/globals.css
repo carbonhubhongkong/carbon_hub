@@ -288,7 +288,7 @@ select {
 .btn {
   padding: 12px 24px;
   border: none;
-  border-radius: 6px;
+  border-radius: 30px;
   font-size: 1rem;
   font-weight: 500;
   cursor: pointer;

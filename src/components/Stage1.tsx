@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import toast from 'react-hot-toast';
 
 interface Stage1Props {
@@ -40,6 +40,7 @@ const Stage1: React.FC<Stage1Props> = ({ onNext }) => {
   const [isEditing, setIsEditing] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const inputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     fetchEmissionFactors();
@@ -121,8 +122,83 @@ const Stage1: React.FC<Stage1Props> = ({ onNext }) => {
     setEditingId(null);
   };
 
+  const [file, setFile] = useState<File | null>(null);
+  const [dragActive, setDragActive] = useState(false);
+
+  const handleDrop = useCallback((e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setDragActive(false);
+    if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+      setFile(e.dataTransfer.files[0]);
+    }
+  }, []);
+
+  const handleDragOver = useCallback((e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setDragActive(true);
+  }, []);
+
+  const handleDragLeave = useCallback((e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setDragActive(false);
+  }, []);
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      setFile(e.target.files[0]);
+    }
+  };
+
+  const handleImportClick = () => {
+    inputRef.current?.click();
+  };
+
   return (
     <div className="stage">
+      <h2 className="stage-title">Import Standard Emission Factors</h2>
+      <div
+        onDrop={handleDrop}
+        onDragOver={handleDragOver}
+        onDragLeave={handleDragLeave}
+        style={{
+          border: dragActive ? '2px solid #0070f3' : '2px dashed #ccc',
+          padding: '40px',
+          textAlign: 'center',
+          borderRadius: '8px',
+          background: dragActive ? '#f0f8ff' : '#fafafa',
+          cursor: 'pointer',
+          
+        }}
+      >
+        <input
+          type="file"
+          style={{ display: 'none' }}
+          id="file-upload"
+          onChange={handleChange}
+        />
+        <label htmlFor="file-upload" style={{ cursor: 'pointer' }}>
+          {file ? (
+            <span>Selected file: {file.name}</span>
+          ) : (
+            <span>Drag & drop a file here, or click to select</span>
+          )}
+        </label>
+      </div>
+      <div style={{ display: 'flex', justifyContent: 'center', marginTop: '16px',marginBottom: '30px', }}>
+        <button
+          type="button"
+          onClick={handleImportClick}
+          className="btn btn-primary"
+        >
+          Import
+        </button>
+      </div>
+
+      <h1 style={{ textAlign: 'center', marginBottom: '20px' }}>OR</h1>
+
       <h2 className="stage-title">Input Emission Factors</h2>
 
       <form onSubmit={handleSubmit} className="emission-form">
@@ -144,18 +220,18 @@ const Stage1: React.FC<Stage1Props> = ({ onNext }) => {
             </div>
             <div className="form-group">
               <label htmlFor="scope">Scope *</label>
-            <select
-              id="scope"
-              name="scope"
-              value={formData.scope}
-              onChange={handleInputChange}
-              required
-              className="form-input"
-            >
-              <option value="Scope 1">Scope 1</option>
-              <option value="Scope 2">Scope 2</option>
-              <option value="Scope 3">Scope 3</option>
-            </select>
+              <select
+                id="scope"
+                name="scope"
+                value={formData.scope}
+                onChange={handleInputChange}
+                required
+                className="form-input"
+              >
+                <option value="Scope 1">Scope 1</option>
+                <option value="Scope 2">Scope 2</option>
+                <option value="Scope 3">Scope 3</option>
+              </select>
             </div>
             <div className="form-group">
               <label htmlFor="category">Category *</label>
