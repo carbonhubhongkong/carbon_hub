@@ -27,3 +27,24 @@ export async function getDb(): Promise<Db> {
   const client = await clientPromise;
   return client.db(); // Uses the database specified in the URI
 }
+
+/**
+ * Returns the GHG Reporting Standards collection. If the collection is empty, seeds it with the default list.
+ * To add or change the options, update the `defaultStandards` array below and re-run the seeding logic.
+ */
+export async function getGhgReportingStandardsCollection() {
+  const db = await getDb();
+  const collection = db.collection("ghg_reporting_standards");
+  const count = await collection.countDocuments();
+  if (count === 0) {
+    const defaultStandards = [
+      { name: "GHG Protocol" },
+      { name: "GRI Standards" },
+      { name: "ISO 14064" },
+      { name: "IFRS - ISSB" },
+      { name: "Custom" },
+    ];
+    await collection.insertMany(defaultStandards);
+  }
+  return collection;
+}

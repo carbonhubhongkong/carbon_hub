@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import toast from 'react-hot-toast';
+import EmissionFactorCSVManager from './EmissionFactorCSVManager';
 
 interface Stage1Props {
   onNext: () => void;
@@ -21,6 +22,8 @@ interface EmissionFactorData {
   // Emission factor fields
   co2ePerUnit: number;
   emissionFactorUnit: string;
+  ghgReportingStandard: string;
+  sourceOrDisclosureRequirement: string;
 }
 
 const Stage1: React.FC<Stage1Props> = ({ onNext }) => {
@@ -33,7 +36,9 @@ const Stage1: React.FC<Stage1Props> = ({ onNext }) => {
     dataSource: '',
     methodType: 'Volume Based',
     co2ePerUnit: 0,
-    emissionFactorUnit: ''
+    emissionFactorUnit: '',
+    ghgReportingStandard: '',
+    sourceOrDisclosureRequirement: '',
   });
 
   const [emissionFactors, setEmissionFactors] = useState<EmissionFactorData[]>([]);
@@ -42,8 +47,12 @@ const Stage1: React.FC<Stage1Props> = ({ onNext }) => {
   const [isLoading, setIsLoading] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
 
+  // Add state for standards dropdown
+  const [ghgStandards, setGhgStandards] = useState<string[]>([]);
+
   useEffect(() => {
     fetchEmissionFactors();
+    fetchGhgStandards();
   }, []);
 
   const fetchEmissionFactors = async () => {
@@ -54,6 +63,18 @@ const Stage1: React.FC<Stage1Props> = ({ onNext }) => {
     } catch (error) {
       console.error('Error fetching emission factors:', error);
       toast.error('Failed to fetch emission factors');
+    }
+  };
+
+  const fetchGhgStandards = async () => {
+    try {
+      // The endpoint returns the list of GHG Reporting Standards
+      const response = await fetch('/api/emission-factors/factors/standards');
+      const data = await response.json();
+      setGhgStandards(data);
+    } catch (error) {
+      console.error('Error fetching GHG Reporting Standards:', error);
+      toast.error('Failed to fetch GHG Reporting Standards');
     }
   };
 
@@ -116,86 +137,19 @@ const Stage1: React.FC<Stage1Props> = ({ onNext }) => {
       dataSource: '',
       methodType: 'Volume Based',
       co2ePerUnit: 0,
-      emissionFactorUnit: ''
+      emissionFactorUnit: '',
+      ghgReportingStandard: '',
+      sourceOrDisclosureRequirement: '',
     });
     setIsEditing(false);
     setEditingId(null);
   };
 
-  const [file, setFile] = useState<File | null>(null);
-  const [dragActive, setDragActive] = useState(false);
-
-  const handleDrop = useCallback((e: React.DragEvent<HTMLDivElement>) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setDragActive(false);
-    if (e.dataTransfer.files && e.dataTransfer.files[0]) {
-      setFile(e.dataTransfer.files[0]);
-    }
-  }, []);
-
-  const handleDragOver = useCallback((e: React.DragEvent<HTMLDivElement>) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setDragActive(true);
-  }, []);
-
-  const handleDragLeave = useCallback((e: React.DragEvent<HTMLDivElement>) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setDragActive(false);
-  }, []);
-
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files[0]) {
-      setFile(e.target.files[0]);
-    }
-  };
-
-  const handleImportClick = () => {
-    inputRef.current?.click();
-  };
-
   return (
     <div className="stage">
       <h2 className="stage-title">Import Standard Emission Factors</h2>
-      <div
-        onDrop={handleDrop}
-        onDragOver={handleDragOver}
-        onDragLeave={handleDragLeave}
-        style={{
-          border: dragActive ? '2px solid #0070f3' : '2px dashed #ccc',
-          padding: '40px',
-          textAlign: 'center',
-          borderRadius: '8px',
-          background: dragActive ? '#f0f8ff' : '#fafafa',
-          cursor: 'pointer',
-          
-        }}
-      >
-        <input
-          type="file"
-          style={{ display: 'none' }}
-          id="file-upload"
-          onChange={handleChange}
-        />
-        <label htmlFor="file-upload" style={{ cursor: 'pointer' }}>
-          {file ? (
-            <span>Selected file: {file.name}</span>
-          ) : (
-            <span>Drag & drop a file here, or click to select</span>
-          )}
-        </label>
-      </div>
-      <div style={{ display: 'flex', justifyContent: 'center', marginTop: '16px',marginBottom: '30px', }}>
-        <button
-          type="button"
-          onClick={handleImportClick}
-          className="btn btn-primary"
-        >
-          Import
-        </button>
-      </div>
+      {/* CSV Import/Export Manager */}
+      <EmissionFactorCSVManager />
 
       <h1 style={{ textAlign: 'center', marginBottom: '20px' }}>OR</h1>
 
@@ -258,7 +212,7 @@ const Stage1: React.FC<Stage1Props> = ({ onNext }) => {
               />
             </div>
             <div className="form-group">
-              <label htmlFor="unit">Unit on Quantity *</label>
+              <label htmlFor="unit">Unit on Quantity (e.g. kg, kWh, litre, etc.) *</label> 
               <input
                 type="text"
                 id="unit"
@@ -303,9 +257,9 @@ const Stage1: React.FC<Stage1Props> = ({ onNext }) => {
           </div>
         </div>
 
-        {/* Emission Factors Section */}
+        {/* Emission Factor & Reference Section */}
         <div className="form-section">
-          <h3 className="section-title">Emission Factors</h3>
+          <h3 className="section-title">Emission Factor & Reference</h3>
           <div className="form-grid">
             <div className="form-group">
               <label htmlFor="co2ePerUnit">CO2e per Unit *</label>
@@ -330,6 +284,39 @@ const Stage1: React.FC<Stage1Props> = ({ onNext }) => {
                 onChange={handleInputChange}
                 required
                 className="form-input"
+              />
+            </div>
+            <div className="form-group">
+              <label htmlFor="ghgReportingStandard">GHG Reporting Standard *</label>
+              {/*
+                To add or change the dropdown options, update the MongoDB collection 'ghg_reporting_standards'.
+                See src/lib/mongodb.ts for seeding logic.
+              */}
+              <select
+                id="ghgReportingStandard"
+                name="ghgReportingStandard"
+                value={formData.ghgReportingStandard}
+                onChange={handleInputChange}
+                required
+                className="form-input"
+              >
+                <option value="">Select a standard</option>
+                {ghgStandards.map((standard) => (
+                  <option key={standard} value={standard}>{standard}</option>
+                ))}
+              </select>
+            </div>
+            <div className="form-group">
+              <label htmlFor="sourceOrDisclosureRequirement">Source or Disclosure Requirement *</label>
+              <input
+                type="text"
+                id="sourceOrDisclosureRequirement"
+                name="sourceOrDisclosureRequirement"
+                value={formData.sourceOrDisclosureRequirement}
+                onChange={handleInputChange}
+                required
+                className="form-input"
+                placeholder="Enter a weblink or remarks"
               />
             </div>
           </div>
@@ -360,6 +347,8 @@ const Stage1: React.FC<Stage1Props> = ({ onNext }) => {
                 <th>Location</th>
                 <th>Method</th>
                 <th>CO2e/Unit</th>
+                <th>GHG Reporting Standard</th>
+                <th>Source/Disclosure</th>
                 <th>Actions</th>
               </tr>
             </thead>
@@ -372,6 +361,17 @@ const Stage1: React.FC<Stage1Props> = ({ onNext }) => {
                   <td>{factor.location}</td>
                   <td>{factor.methodType}</td>
                   <td>{factor.co2ePerUnit} {factor.emissionFactorUnit}</td>
+                  <td>{factor.ghgReportingStandard || 'N/A'}</td>
+                  <td>
+                    {factor.sourceOrDisclosureRequirement &&
+                      /^https?:\/\//.test(factor.sourceOrDisclosureRequirement.trim()) ? (
+                      <a href={factor.sourceOrDisclosureRequirement} target="_blank" rel="noopener noreferrer">
+                        {factor.sourceOrDisclosureRequirement}
+                      </a>
+                    ) : (
+                      factor.sourceOrDisclosureRequirement || 'N/A'
+                    )}
+                  </td>
                   <td>
                     <button
                       onClick={() => handleEdit(factor)}
