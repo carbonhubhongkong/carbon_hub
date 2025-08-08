@@ -3,6 +3,7 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import toast from 'react-hot-toast';
 import EmissionFactorCSVManager from './EmissionFactorCSVManager';
+import { emissionFactorFields } from '@/config/emissionFactorSchema';
 
 interface Stage1Props {
   onNext: () => void;
@@ -18,7 +19,7 @@ interface EmissionFactorData {
   unit: string;
   dataSource: string;
   // Calculation method
-  methodType: 'Volume Based' | 'Spend Based';
+  methodType: 'Volume Based' | 'Spend Based' | 'Distance Based' | 'Mass Based';
   // Emission factor fields
   co2ePerUnit: number;
   emissionFactorUnit: string;
@@ -251,8 +252,10 @@ const Stage1: React.FC<Stage1Props> = ({ onNext }) => {
               required
               className="form-input"
             >
-              <option value="Volume Based">Volume Based</option>
-              <option value="Spend Based">Spend Based</option>
+              <option value="">Select method type</option>
+              {emissionFactorFields.find(f => f.key === 'methodType')?.validation?.enumOptions?.map((option) => (
+                <option key={option} value={option}>{option}</option>
+              ))}
             </select>
           </div>
         </div>

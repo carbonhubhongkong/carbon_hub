@@ -70,7 +70,12 @@ export const emissionFactorFields: EmissionFactorField[] = [
     type: "enum",
     required: true,
     validation: {
-      enumOptions: ["Volume Based", "Spend Based"],
+      enumOptions: [
+        "Volume Based",
+        "Spend Based",
+        "Distance Based",
+        "Mass Based",
+      ],
     },
     example: "Volume Based",
   },

@@ -1,9 +1,10 @@
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 import { getDb } from "@/lib/mongodb";
+import { emissionFactorFields } from "@/config/emissionFactorSchema";
 
 interface CalculationMethod {
-  methodType: "Volume Based" | "Spend Based";
+  methodType: "Volume Based" | "Spend Based" | "Distance Based" | "Mass Based";
 }
 
 export async function GET() {
@@ -27,10 +28,13 @@ export async function POST(req: NextRequest) {
   try {
     const data = await req.json();
     const { methodType } = data;
-    if (
-      !methodType ||
-      (methodType !== "Volume Based" && methodType !== "Spend Based")
-    ) {
+
+    // Get valid method types from the centralized schema
+    const validMethodTypes =
+      emissionFactorFields.find((f) => f.key === "methodType")?.validation
+        ?.enumOptions || [];
+
+    if (!methodType || !validMethodTypes.includes(methodType)) {
       return NextResponse.json(
         { error: "Invalid methodType" },
         { status: 400 }
