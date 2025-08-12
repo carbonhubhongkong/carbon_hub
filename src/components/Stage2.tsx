@@ -1,7 +1,8 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import toast from 'react-hot-toast';
+import * as toastModule from 'react-hot-toast';
+const toast = toastModule.default || toastModule;
 
 interface Stage2Props {
   onNext: () => void;
@@ -26,6 +27,7 @@ interface EmissionFactor {
   description: string;
   scope: string;
   category: string;
+  location: string;
   co2ePerUnit: number;
   emissionFactorUnit: string;
 }
@@ -49,6 +51,12 @@ const Stage2: React.FC<Stage2Props> = ({ onNext }) => {
   const [isEditing, setIsEditing] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [isLoadingData, setIsLoadingData] = useState(true);
+  const [connectionStatus, setConnectionStatus] = useState<'connected' | 'fallback' | 'error'>('connected');
+
+  // New state for dropdown options
+  const [locationOptions, setLocationOptions] = useState<string[]>([]);
+  const [categoryOptions, setCategoryOptions] = useState<string[]>([]);
 
   useEffect(() => {
     fetchActivities();
@@ -56,48 +64,130 @@ const Stage2: React.FC<Stage2Props> = ({ onNext }) => {
   }, []);
 
   useEffect(() => {
-    // Filter emission factors based on selected scope
+    // Extract unique locations and categories from emission factors
+    if (emissionFactors.length > 0) {
+      const uniqueLocations = [...new Set(emissionFactors.map(f => f.location).filter(Boolean))].sort();
+      const uniqueCategories = [...new Set(emissionFactors.map(f => f.category).filter(Boolean))].sort();
+      
+      setLocationOptions(uniqueLocations);
+      setCategoryOptions(uniqueCategories);
+    }
+  }, [emissionFactors]);
+
+  useEffect(() => {
+    // Filter emission factors based on selected scope, location, and category
+    let filtered = emissionFactors;
+    
     if (formData.scope) {
-      const filtered = emissionFactors.filter(factor => factor.scope === formData.scope);
-      setFilteredEmissionFactors(filtered);
-      // Reset emission factor selection if current selection is not in filtered list
-      if (!filtered.find(f => f._id === formData.emissionFactorId)) {
-        setFormData(prev => ({ ...prev, emissionFactorId: '' }));
-      }
-    } else {
-      setFilteredEmissionFactors([]);
+      filtered = filtered.filter(factor => factor.scope === formData.scope);
+    }
+    
+    if (formData.location) {
+      filtered = filtered.filter(factor => factor.location === formData.location);
+    }
+    
+    if (formData.category) {
+      filtered = filtered.filter(factor => factor.category === formData.category);
+    }
+    
+    setFilteredEmissionFactors(filtered);
+    
+    // Reset emission factor selection if current selection is not in filtered list
+    if (!filtered.find(f => f._id === formData.emissionFactorId)) {
       setFormData(prev => ({ ...prev, emissionFactorId: '' }));
     }
-  }, [formData.scope, emissionFactors]);
+  }, [formData.scope, formData.location, formData.category, formData.emissionFactorId, emissionFactors]);
+
+  // Reset dependent fields when location or category changes
+  useEffect(() => {
+    if (formData.location && !locationOptions.includes(formData.location)) {
+      setFormData(prev => ({ ...prev, location: '', emissionFactorId: '' }));
+    }
+  }, [locationOptions, formData.location]);
+
+  useEffect(() => {
+    if (formData.category && !categoryOptions.includes(formData.category)) {
+      setFormData(prev => ({ ...prev, category: '', emissionFactorId: '' }));
+    }
+  }, [categoryOptions, formData.category]);
 
   const fetchActivities = async () => {
     try {
+      setIsLoadingData(true);
+      setConnectionStatus('connected');
+      
       const response = await fetch('/api/reporting-activities');
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
       const data = await response.json();
-      setActivities(data);
+      
+      // Check if we're getting data from fallback storage (indicated by fallback_ prefixed IDs)
+      const hasFallbackData = Array.isArray(data) && data.some(activity => 
+        activity._id && activity._id.toString().startsWith('fallback_')
+      );
+      
+      if (hasFallbackData) {
+        setConnectionStatus('fallback');
+        toast.success('Using local storage - MongoDB connection unavailable');
+      }
+      
+      // Ensure data is always an array
+      setActivities(Array.isArray(data) ? data : []);
     } catch (error) {
       console.error('Error fetching activities:', error);
-      toast.error('Failed to fetch activities');
+      setConnectionStatus('error');
+      toast.error('Failed to fetch activities - using local storage');
+      // Set empty array as fallback
+      setActivities([]);
+    } finally {
+      setIsLoadingData(false);
     }
   };
 
   const fetchEmissionFactors = async () => {
     try {
-      const response = await fetch('/api/emission-factors/general');
+      const response = await fetch('/api/emission-factors/factors');
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
       const data = await response.json();
-      setEmissionFactors(data);
+      
+      // Check if we're getting data from fallback storage
+      const hasFallbackData = Array.isArray(data) && data.some(factor => 
+        factor._id && factor._id.toString().startsWith('fallback_')
+      );
+      
+      if (hasFallbackData) {
+        toast.success('Using local storage for emission factors - MongoDB connection unavailable');
+      }
+      
+      // Ensure data is always an array
+      setEmissionFactors(Array.isArray(data) ? data : []);
     } catch (error) {
       console.error('Error fetching emission factors:', error);
-      toast.error('Failed to fetch emission factors');
+      toast.error('Failed to fetch emission factors - using local storage');
+      // Set empty array as fallback
+      setEmissionFactors([]);
     }
   };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
-    setFormData(prev => ({
-      ...prev,
-      [name]: name === 'quantity' ? parseFloat(value) || 0 : value
-    }));
+    
+    // Reset dependent fields when location or category changes
+    if (name === 'location' || name === 'category') {
+      setFormData(prev => ({
+        ...prev,
+        [name]: value,
+        emissionFactorId: '' // Reset emission factor when location or category changes
+      }));
+    } else {
+      setFormData(prev => ({
+        ...prev,
+        [name]: name === 'quantity' ? parseFloat(value) || 0 : value
+      }));
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -194,29 +284,37 @@ const Stage2: React.FC<Stage2Props> = ({ onNext }) => {
           </div>
           <div className="form-group">
             <label htmlFor="scope">Scope *</label>
-            <input
-              type="text"
+            <select
               id="scope"
               name="scope"
               value={formData.scope}
               onChange={handleInputChange}
               required
               className="form-input"
-              placeholder="e.g., Scope 1, Scope 2, Scope 3"
-            />
+            >
+              <option value="">Select scope</option>
+              <option value="Scope 1">Scope 1</option>
+              <option value="Scope 2">Scope 2</option>
+              <option value="Scope 3">Scope 3</option>
+            </select>
           </div>
           <div className="form-group">
             <label htmlFor="category">Category *</label>
-            <input
-              type="text"
+            <select
               id="category"
               name="category"
               value={formData.category}
               onChange={handleInputChange}
               required
               className="form-input"
-              placeholder="e.g., Energy, Transport, Waste"
-            />
+            >
+              <option value="">Select category</option>
+              {categoryOptions.map((category) => (
+                <option key={category} value={category}>
+                  {category}
+                </option>
+              ))}
+            </select>
           </div>
           <div className="form-group">
             <label htmlFor="activityName">Activity Name *</label>
@@ -232,17 +330,22 @@ const Stage2: React.FC<Stage2Props> = ({ onNext }) => {
             />
           </div>
           <div className="form-group">
-            <label htmlFor="location">Location *</label>
-            <input
-              type="text"
+            <label htmlFor="location">Country/Region/Location *</label>
+            <select
               id="location"
               name="location"
               value={formData.location}
               onChange={handleInputChange}
               required
               className="form-input"
-              placeholder="e.g., New York Office"
-            />
+            >
+              <option value="">Select location</option>
+              {locationOptions.map((location) => (
+                <option key={location} value={location}>
+                  {location}
+                </option>
+              ))}
+            </select>
           </div>
           <div className="form-group">
             <label htmlFor="quantity">Quantity *</label>
@@ -267,7 +370,7 @@ const Stage2: React.FC<Stage2Props> = ({ onNext }) => {
               onChange={handleInputChange}
               required
               className="form-input"
-              disabled={!formData.scope}
+              disabled={!formData.scope || !formData.location || !formData.category}
             >
               <option value="">Select an emission factor</option>
               {filteredEmissionFactors.map((factor) => (
@@ -276,8 +379,10 @@ const Stage2: React.FC<Stage2Props> = ({ onNext }) => {
                 </option>
               ))}
             </select>
-            {!formData.scope && (
-              <small className="form-help">Please select a scope first to see available emission factors</small>
+            {(!formData.scope || !formData.location || !formData.category) && (
+              <small className="form-help">
+                Please select scope, location, and category first to see available emission factors
+              </small>
             )}
           </div>
         </div>
@@ -309,46 +414,81 @@ const Stage2: React.FC<Stage2Props> = ({ onNext }) => {
 
       {/* Data Table */}
       <div className="data-section">
-        <h3 className="section-title">Saved Activities</h3>
-        <div className="table-container">
-          <table className="data-table">
-            <thead>
-              <tr>
-                <th>Activity Name</th>
-                <th>Period</th>
-                <th>Scope</th>
-                <th>Category</th>
-                <th>Location</th>
-                <th>Quantity</th>
-                <th>Emission Factor</th>
-                <th>Calculated Emissions</th>
-                <th>Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {activities.map((activity) => (
-                <tr key={activity._id}>
-                  <td>{activity.activityName}</td>
-                  <td>{activity.reportingPeriodStart} to {activity.reportingPeriodEnd}</td>
-                  <td>{activity.scope}</td>
-                  <td>{activity.category}</td>
-                  <td>{activity.location}</td>
-                  <td>{activity.quantity}</td>
-                  <td>{getEmissionFactorDescription(activity.emissionFactorId)}</td>
-                  <td>{activity.calculatedEmissions?.toFixed(2)} kg CO2e</td>
-                  <td>
-                    <button
-                      onClick={() => handleEdit(activity)}
-                      className="btn btn-small btn-secondary"
-                    >
-                      Edit
-                    </button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+        <h3 className="section-title">
+          Saved Activities
+          {connectionStatus === 'fallback' && (
+            <span className="connection-status fallback">
+              📱 Using Local Storage
+            </span>
+          )}
+          {connectionStatus === 'error' && (
+            <span className="connection-status error">
+              ⚠️ Connection Error
+            </span>
+          )}
+        </h3>
+        
+        {isLoadingData ? (
+          <div className="loading-state">
+            <p>Loading activities...</p>
+          </div>
+        ) : (
+          <div className="table-container">
+            {Array.isArray(activities) && activities.length > 0 ? (
+              <table className="data-table">
+                <thead>
+                  <tr>
+                    <th>Activity Name</th>
+                    <th>Period</th>
+                    <th>Scope</th>
+                    <th>Category</th>
+                    <th>Country/Region/Location</th>
+                    <th>Quantity</th>
+                    <th>Emission Factor</th>
+                    <th>Calculated Emissions</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {activities.map((activity) => (
+                    <tr key={activity._id}>
+                      <td>{activity.activityName}</td>
+                      <td>{activity.reportingPeriodStart} to {activity.reportingPeriodEnd}</td>
+                      <td>{activity.scope}</td>
+                      <td>{activity.category}</td>
+                      <td>{activity.location}</td>
+                      <td>{activity.quantity}</td>
+                      <td>{getEmissionFactorDescription(activity.emissionFactorId)}</td>
+                      <td>
+                        {activity.calculatedEmissions 
+                          ? `${activity.calculatedEmissions.toFixed(2)} kg CO2e`
+                          : 'N/A'
+                        }
+                      </td>
+                      <td>
+                        <button
+                          onClick={() => handleEdit(activity)}
+                          className="btn btn-small btn-secondary"
+                        >
+                          Edit
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            ) : (
+              <div className="no-data">
+                <p>No activities added yet. Add your first activity above.</p>
+                {connectionStatus === 'fallback' && (
+                  <p className="fallback-note">
+                    <small>Note: Data is stored locally. MongoDB connection is unavailable.</small>
+                  </p>
+                )}
+              </div>
+            )}
+          </div>
+        )}
       </div>
 
       <div className="stage-actions">

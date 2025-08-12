@@ -1,7 +1,7 @@
 // Session Manager for ESG Platform Data Retention
 // This utility manages user sessions and implements automatic data cleanup
 
-import toast from "react-hot-toast";
+import { toast } from "react-hot-toast";
 
 interface SessionData {
   sessionId: string;

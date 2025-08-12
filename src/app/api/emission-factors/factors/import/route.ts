@@ -28,6 +28,8 @@ function validateRow(row: Record<string, any>) {
       if (field.validation?.max !== undefined && num > field.validation.max) {
         errors[field.key] = `Must be <= ${field.validation.max}`;
       }
+      // Convert the value to a number for proper storage
+      row[field.key] = num;
     }
     if (field.type === "enum" && value !== undefined && value !== "") {
       if (!field.validation?.enumOptions?.includes(value)) {

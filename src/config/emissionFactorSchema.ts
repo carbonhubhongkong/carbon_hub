@@ -2,11 +2,27 @@
 // To add, remove, or update fields, edit this file only. All form, CSV, and validation logic will use this schema.
 // Each field should have: key, label, type, required, validation, and example.
 
+export interface EmissionFactorData {
+  _id?: string;
+  description: string;
+  scope: string;
+  category: string;
+  location: string;
+  unit: string;
+  dataSource: string;
+  methodType: "Volume Based" | "Spend Based" | "Distance Based" | "Mass Based";
+  co2ePerUnit: number;
+  emissionFactorUnit: string;
+  ghgReportingStandard: string;
+  sourceOrDisclosureRequirement: string;
+}
+
 export interface EmissionFactorField {
   key: string;
   label: string;
   type: "string" | "number" | "enum";
   required: boolean;
+  allowEmpty?: boolean; // New field to allow empty strings for CSV imports
   validation?: {
     min?: number;
     max?: number;
@@ -24,6 +40,7 @@ export const emissionFactorFields: EmissionFactorField[] = [
     label: "Description",
     type: "string",
     required: true,
+    allowEmpty: false,
     example: "Grid electricity, Hong Kong",
   },
   {
@@ -31,6 +48,7 @@ export const emissionFactorFields: EmissionFactorField[] = [
     label: "Scope",
     type: "enum",
     required: true,
+    allowEmpty: false,
     validation: {
       enumOptions: ["Scope 1", "Scope 2", "Scope 3"],
     },
@@ -41,6 +59,7 @@ export const emissionFactorFields: EmissionFactorField[] = [
     label: "Category",
     type: "string",
     required: true,
+    allowEmpty: false,
     example: "Electricity",
   },
   {
@@ -48,6 +67,7 @@ export const emissionFactorFields: EmissionFactorField[] = [
     label: "Country/Region/Location",
     type: "string",
     required: true,
+    allowEmpty: false,
     example: "Hong Kong",
   },
   {
@@ -55,6 +75,7 @@ export const emissionFactorFields: EmissionFactorField[] = [
     label: "Unit on Quantity",
     type: "string",
     required: true,
+    allowEmpty: false,
     example: "kWh",
   },
   {
@@ -62,6 +83,7 @@ export const emissionFactorFields: EmissionFactorField[] = [
     label: "Data Source/Collection Method",
     type: "string",
     required: true,
+    allowEmpty: false,
     example: "Utility bill",
   },
   {
@@ -69,6 +91,7 @@ export const emissionFactorFields: EmissionFactorField[] = [
     label: "Method Type",
     type: "enum",
     required: true,
+    allowEmpty: false,
     validation: {
       enumOptions: [
         "Volume Based",
@@ -84,6 +107,7 @@ export const emissionFactorFields: EmissionFactorField[] = [
     label: "CO2e per Unit",
     type: "number",
     required: true,
+    allowEmpty: false,
     validation: {
       min: 0,
     },
@@ -94,6 +118,7 @@ export const emissionFactorFields: EmissionFactorField[] = [
     label: "Emission Factor Unit",
     type: "string",
     required: true,
+    allowEmpty: false,
     example: "kg CO2e/kWh",
   },
   {
@@ -101,6 +126,7 @@ export const emissionFactorFields: EmissionFactorField[] = [
     label: "GHG Reporting Standard",
     type: "enum",
     required: true,
+    allowEmpty: false,
     validation: {
       enumOptions: [
         "GHG Protocol",
@@ -117,6 +143,7 @@ export const emissionFactorFields: EmissionFactorField[] = [
     label: "Source or Disclosure Requirement",
     type: "string",
     required: true,
+    allowEmpty: true, // Allow empty for CSV imports
     example:
       "https://www.epd.gov.hk/epd/english/climate_change/files/EF_2022.pdf",
   },

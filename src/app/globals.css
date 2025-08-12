@@ -438,6 +438,18 @@ select {
   font-style: italic;
 }
 
+.loading-state {
+  text-align: center;
+  padding: 40px;
+  color: var(--text-secondary);
+  font-style: italic;
+}
+
+.loading-state p {
+  margin: 0;
+  font-size: 1.1rem;
+}
+
 /* Responsive Design */
 @media (max-width: 768px) {
   .container {
@@ -776,6 +788,28 @@ select {
   }
 }
 
+/* Edit Modal Specific Styles */
+.modal-content .modal-title {
+  color: var(--text-primary);
+}
+
+.modal-content .form-section {
+  margin-bottom: 24px;
+}
+
+.modal-content .form-section:last-child {
+  margin-bottom: 0;
+}
+
+.modal-content .section-title {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: 16px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--border);
+}
+
 /* --- CSV Manager Styles --- */
 .csv-manager {
   margin-bottom: 32px;
@@ -812,6 +846,44 @@ select {
   margin-bottom: 16px;
   font-size: 1rem;
 }
+
+.csv-info {
+  background: #f8f9fa;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 16px;
+  margin-bottom: 20px;
+}
+
+.csv-info h4 {
+  margin: 0 0 12px 0;
+  color: var(--text-primary);
+  font-size: 1.1rem;
+}
+
+.csv-info p {
+  margin: 0 0 12px 0;
+  color: var(--text-secondary);
+  font-size: 0.95rem;
+}
+
+.csv-columns {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.csv-column {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 6px 12px;
+  font-size: 0.9rem;
+  color: var(--text-primary);
+  font-family: 'Courier New', monospace;
+}
+
 .csv-table-container {
   overflow-x: auto;
   margin-bottom: 16px;
@@ -860,18 +932,50 @@ select {
   gap: 16px;
   margin-top: 12px;
 }
+
+.csv-import-info {
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+}
 .csv-progress-bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-left: 16px;
+}
+.csv-progress-container {
   width: 200px;
   height: 8px;
   background: #eee;
   border-radius: 4px;
   overflow: hidden;
-  margin-left: 16px;
 }
 .csv-progress {
   height: 100%;
   background: var(--primary);
   transition: width 0.3s;
+}
+.csv-progress-text {
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+  margin-left: 8px;
+  white-space: nowrap;
+}
+
+/* Spinner for loading states */
+.spinner {
+  display: inline-block;
+  width: 16px;
+  height: 16px;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-radius: 50%;
+  border-top-color: #fff;
+  animation: spin 1s ease-in-out infinite;
+  margin-right: 8px;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
 }
 .csv-import-result {
   color: var(--success);
@@ -919,3 +1023,325 @@ select {
   }
 }
 /* End CSV Manager Styles */
+
+/* Form validation styles */
+.form-input-error {
+  border-color: var(--error) !important;
+  box-shadow: 0 0 0 2px rgba(244, 67, 54, 0.2) !important;
+}
+.form-error-message {
+  color: var(--error);
+  font-size: 0.85rem;
+  margin-top: 4px;
+  font-weight: 500;
+}
+.form-tooltip {
+  position: absolute;
+  background: #333;
+  color: white;
+  padding: 8px 12px;
+  border-radius: 6px;
+  font-size: 0.85rem;
+  max-width: 300px;
+  z-index: 1000;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  margin-top: 4px;
+  line-height: 1.4;
+  /* Position tooltip below the input field */
+  top: 100%;
+  left: 0;
+  right: 0;
+  /* Ensure tooltip doesn't overlap with input */
+  pointer-events: none;
+}
+.form-tooltip::before {
+  content: '';
+  position: absolute;
+  top: -4px;
+  left: 20px;
+  width: 0;
+  height: 0;
+  border-left: 4px solid transparent;
+  border-right: 4px solid transparent;
+  border-bottom: 4px solid #333;
+}
+.form-group { 
+  position: relative; 
+  margin-bottom: 20px; /* Add more space between form groups */
+}
+@media (max-width: 768px) {
+  .form-tooltip {
+    position: fixed;
+    top: auto;
+    bottom: 20px;
+    left: 20px;
+    right: 20px;
+    max-width: none;
+    z-index: 1001;
+  }
+  .form-tooltip::before {
+    display: none;
+  }
+}
+/* End Form validation styles */
+
+/* Form tooltip positioning for mobile */
+@media (max-width: 768px) {
+  .form-tooltip {
+    left: 0;
+    right: 0;
+    transform: none;
+  }
+  
+  .form-tooltip::before {
+    left: 20px;
+  }
+}
+
+/* Delete functionality styles */
+.bulk-actions {
+  margin-bottom: 16px;
+  padding: 12px 16px;
+  background-color: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  box-shadow: 0 2px 4px var(--shadow);
+}
+
+.bulk-controls {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.select-all-checkbox {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  font-weight: 500;
+  color: var(--text-primary);
+}
+
+.select-all-checkbox input[type="checkbox"] {
+  width: 18px;
+  height: 18px;
+  cursor: pointer;
+}
+
+.checkbox-column {
+  width: 50px;
+  text-align: center;
+}
+
+.checkbox-column input[type="checkbox"] {
+  width: 18px;
+  height: 18px;
+  cursor: pointer;
+}
+
+.actions-column {
+  width: 160px;
+}
+
+.action-buttons {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.btn-danger {
+  background-color: var(--error);
+  color: white;
+  border: 1px solid var(--error);
+}
+
+.btn-danger:hover:not(:disabled) {
+  background-color: #d32f2f;
+  border-color: #d32f2f;
+}
+
+.btn-danger:disabled {
+  background-color: #ccc;
+  border-color: #ccc;
+  cursor: not-allowed;
+}
+
+/* Delete modal specific styles */
+.delete-modal .modal-title {
+  color: var(--error);
+}
+
+.delete-message {
+  color: var(--text-primary);
+  font-size: 1rem;
+  line-height: 1.5;
+  margin-bottom: 0;
+}
+
+/* Responsive design for delete functionality */
+@media (max-width: 768px) {
+  .bulk-controls {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+  
+  .action-buttons {
+    flex-direction: column;
+    gap: 4px;
+  }
+  
+  .actions-column {
+    width: auto;
+  }
+  
+  .checkbox-column {
+    width: 40px;
+  }
+}
+
+/* Unified Table Component Styles */
+.unified-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 20px;
+  background: var(--surface);
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 2px 8px var(--shadow);
+}
+
+.unified-table th,
+.unified-table td {
+  padding: 12px 16px;
+  text-align: left;
+  border-bottom: 1px solid var(--border);
+}
+
+.unified-table th {
+  background-color: var(--primary);
+  color: white;
+  font-weight: 600;
+  font-size: 14px;
+}
+
+.unified-table tbody tr:hover {
+  background-color: rgba(46, 125, 50, 0.05);
+}
+
+.unified-table .checkbox-column {
+  width: 50px;
+  text-align: center;
+}
+
+.unified-table .actions-column {
+  width: 150px;
+  text-align: center;
+}
+
+.unified-table .action-buttons {
+  display: flex;
+  gap: 8px;
+  justify-content: center;
+}
+
+.unified-table .btn-small {
+  padding: 6px 12px;
+  font-size: 12px;
+  min-width: 60px;
+}
+
+/* CSV-specific table styles */
+.csv-table {
+  border: 2px solid var(--border);
+}
+
+.csv-table .csv-row-invalid {
+  background-color: rgba(244, 67, 54, 0.1);
+}
+
+.csv-table .csv-cell-error {
+  background-color: rgba(244, 67, 54, 0.2);
+  border: 1px solid var(--error);
+}
+
+.csv-table .csv-caution {
+  color: var(--error);
+  font-size: 16px;
+}
+
+/* Ensure consistent button styling across tables */
+.data-table .btn,
+.csv-table .btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  border: none;
+  border-radius: 4px;
+  padding: 8px 16px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-decoration: none;
+}
+
+.data-table .btn:hover,
+.csv-table .btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+/* Responsive table adjustments */
+@media (max-width: 768px) {
+  .unified-table th,
+  .unified-table td {
+    padding: 8px 12px;
+    font-size: 13px;
+  }
+  
+  .unified-table .action-buttons {
+    flex-direction: column;
+    gap: 4px;
+  }
+  
+  .unified-table .btn-small {
+    padding: 4px 8px;
+    font-size: 11px;
+    min-width: 50px;
+  }
+}
+
+/* Connection Status Indicators */
+.connection-status {
+  display: inline-block;
+  margin-left: 15px;
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 0.8rem;
+  font-weight: 500;
+  vertical-align: middle;
+}
+
+.connection-status.fallback {
+  background-color: #FFF3E0;
+  color: #E65100;
+  border: 1px solid #FFB74D;
+}
+
+.connection-status.error {
+  background-color: #FFEBEE;
+  color: #C62828;
+  border: 1px solid #EF9A9A;
+}
+
+.fallback-note {
+  margin-top: 10px;
+  padding: 10px;
+  background-color: #FFF3E0;
+  border: 1px solid #FFB74D;
+  border-radius: 8px;
+  color: #E65100;
+}

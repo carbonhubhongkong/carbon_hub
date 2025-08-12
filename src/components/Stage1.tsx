@@ -1,30 +1,15 @@
 'use client';
 
-import React, { useState, useEffect, useCallback, useRef } from 'react';
-import toast from 'react-hot-toast';
+import React, { useState, useEffect, useRef } from 'react';
+import { toast } from 'react-hot-toast';
 import EmissionFactorCSVManager from './EmissionFactorCSVManager';
-import { emissionFactorFields } from '@/config/emissionFactorSchema';
+import EditEmissionFactorModal from './EditEmissionFactorModal';
+import DeleteConfirmationModal from './DeleteConfirmationModal';
+import EmissionFactorTable from './EmissionFactorTable';
+import { emissionFactorFields, EmissionFactorData } from '../config/emissionFactorSchema';
 
 interface Stage1Props {
   onNext: () => void;
-}
-
-interface EmissionFactorData {
-  _id?: string;
-  // General fields
-  description: string;
-  scope: string;
-  category: string;
-  location: string;
-  unit: string;
-  dataSource: string;
-  // Calculation method
-  methodType: 'Volume Based' | 'Spend Based' | 'Distance Based' | 'Mass Based';
-  // Emission factor fields
-  co2ePerUnit: number;
-  emissionFactorUnit: string;
-  ghgReportingStandard: string;
-  sourceOrDisclosureRequirement: string;
 }
 
 const Stage1: React.FC<Stage1Props> = ({ onNext }) => {
@@ -46,10 +31,20 @@ const Stage1: React.FC<Stage1Props> = ({ onNext }) => {
   const [isEditing, setIsEditing] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
-  const inputRef = useRef<HTMLInputElement>(null);
-
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [editingFactor, setEditingFactor] = useState<EmissionFactorData | null>(null);
+  
+  // Delete functionality state
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [deletingFactor, setDeletingFactor] = useState<EmissionFactorData | null>(null);
+  const [showBulkDeleteModal, setShowBulkDeleteModal] = useState(false);
+  const [selectedFactors, setSelectedFactors] = useState<Set<string>>(new Set());
+  const [isDeleting, setIsDeleting] = useState(false);
+  
   // Add state for standards dropdown
   const [ghgStandards, setGhgStandards] = useState<string[]>([]);
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
+  const [showTooltips, setShowTooltips] = useState<Record<string, boolean>>({});
 
   useEffect(() => {
     fetchEmissionFactors();
@@ -58,12 +53,18 @@ const Stage1: React.FC<Stage1Props> = ({ onNext }) => {
 
   const fetchEmissionFactors = async () => {
     try {
-      const response = await fetch('/api/emission-factors/general');
+      const response = await fetch('/api/emission-factors/factors');
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
       const data = await response.json();
-      setEmissionFactors(data);
+      // Ensure data is always an array
+      setEmissionFactors(Array.isArray(data) ? data : []);
     } catch (error) {
       console.error('Error fetching emission factors:', error);
       toast.error('Failed to fetch emission factors');
+      // Set empty array as fallback
+      setEmissionFactors([]);
     }
   };
 
@@ -71,12 +72,47 @@ const Stage1: React.FC<Stage1Props> = ({ onNext }) => {
     try {
       // The endpoint returns the list of GHG Reporting Standards
       const response = await fetch('/api/emission-factors/factors/standards');
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
       const data = await response.json();
-      setGhgStandards(data);
+      // Ensure data is always an array
+      setGhgStandards(Array.isArray(data) ? data : []);
     } catch (error) {
       console.error('Error fetching GHG Reporting Standards:', error);
       toast.error('Failed to fetch GHG Reporting Standards');
+      // Set empty array as fallback
+      setGhgStandards([]);
     }
+  };
+
+  // Real-time validation
+  const validateField = (name: string, value: any) => {
+    const field = emissionFactorFields.find(f => f.key === name);
+    if (!field || !field.required) return '';
+    
+    // Only validate if user has started typing or field has been touched
+    if (field.type === 'number') {
+      if (value === undefined || value === null || isNaN(Number(value))) {
+        return 'This field is required and must be a valid number';
+      }
+    } else {
+      // For strings, check if it's undefined, null, or empty string
+      // But allow empty strings if the field allows it (for CSV imports)
+      if (value === undefined || value === null || 
+          (typeof value === 'string' && value.trim() === '' && !field.allowEmpty)) {
+        return 'This field is required';
+      }
+    }
+    
+    // Additional validation for specific field types
+    if (field.validation) {
+      if (field.validation.enumOptions && typeof value === 'string' && !field.validation.enumOptions.includes(value)) {
+        return `Must be one of: ${field.validation.enumOptions.join(', ')}`;
+      }
+    }
+    
+    return '';
   };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
@@ -85,47 +121,277 @@ const Stage1: React.FC<Stage1Props> = ({ onNext }) => {
       ...prev,
       [name]: name === 'co2ePerUnit' ? parseFloat(value) || 0 : value
     }));
+    
+    // Only validate if user has actually typed something or field has been touched
+    const error = validateField(name, value);
+    setFieldErrors(prev => ({
+      ...prev,
+      [name]: error
+    }));
+  };
+
+  const handleFieldFocus = (fieldName: string) => {
+    setShowTooltips(prev => ({ ...prev, [fieldName]: true }));
+  };
+
+  const handleFieldBlur = (fieldName: string) => {
+    setShowTooltips(prev => ({ ...prev, [fieldName]: false }));
+    // Validate on blur to show errors for empty required fields
+    const value = formData[fieldName as keyof EmissionFactorData];
+    const error = validateField(fieldName, value);
+    setFieldErrors(prev => ({
+      ...prev,
+      [fieldName]: error
+    }));
+  };
+
+  // Get tooltip content for a field
+  const getTooltipContent = (fieldName: string) => {
+    const field = emissionFactorFields.find(f => f.key === fieldName);
+    if (!field) return '';
+    
+    switch (fieldName) {
+      case 'description':
+        return 'Examples: "Grid electricity, Hong Kong", "Natural gas consumption"';
+      case 'scope':
+        return 'Examples: "Scope 1", "Scope 2", "Scope 3"';
+      case 'category':
+        return 'Examples: "Electricity", "Transportation", "Waste"';
+      case 'location':
+        return 'Examples: "Hong Kong", "United States", "Europe"';
+      case 'unit':
+        return 'Examples: "kWh", "liters", "kg", "m3"';
+      case 'dataSource':
+        return 'Examples: "Utility bill", "Fuel receipt", "Meter reading"';
+      case 'methodType':
+        return 'Examples: "Volume Based", "Spend Based", "Distance Based", "Mass Based"';
+      case 'co2ePerUnit':
+        return 'Examples: 0.81, 2.5, 0.1 (must be a number >= 0)';
+      case 'emissionFactorUnit':
+        return 'Examples: "kg CO2e/kWh", "kg CO2e/liter", "kg CO2e/km"';
+      case 'ghgReportingStandard':
+        return 'Examples: "GHG Protocol", "GRI Standards", "ISO 14064"';
+      case 'sourceOrDisclosureRequirement':
+        return 'Examples: "https://example.com", "Internal calculation", "Supplier data"';
+      default:
+        return '';
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setIsLoading(true);
+    
+    // Validate required fields
+    const errors: Record<string, string> = {};
+    emissionFactorFields.forEach(field => {
+      if (field.required) {
+        const value = formData[field.key as keyof EmissionFactorData];
+        if (!value || (typeof value === 'string' && value.trim() === '')) {
+          errors[field.key] = `${field.label} is required`;
+        }
+      }
+    });
+
+    if (Object.keys(errors).length > 0) {
+      Object.values(errors).forEach(error => toast.error(error));
+      return;
+    }
 
     try {
-      const url = isEditing
-        ? `/api/emission-factors/general/${editingId}`
-        : '/api/emission-factors/general';
-
-      const method = isEditing ? 'PUT' : 'POST';
-
-      const response = await fetch(url, {
-        method,
+      const response = await fetch('/api/emission-factors/factors', {
+        method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify(formData),
       });
 
-      if (response.ok) {
-        toast.success(isEditing ? 'Emission factor updated successfully!' : 'Emission factor saved successfully!');
-        resetForm();
-        fetchEmissionFactors();
-      } else {
-        const error = await response.json();
-        toast.error(error.error || 'Failed to save emission factor');
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to add emission factor');
       }
+
+      const newFactor = await response.json();
+      setEmissionFactors(prev => [...prev, newFactor]);
+      
+      // Reset form
+      setFormData({
+        description: '',
+        scope: '',
+        category: '',
+        location: '',
+        unit: '',
+        dataSource: '',
+        methodType: 'Volume Based',
+        co2ePerUnit: 0,
+        emissionFactorUnit: '',
+        ghgReportingStandard: '',
+        sourceOrDisclosureRequirement: '',
+      });
+      
+      toast.success('Emission factor added successfully!');
     } catch (error) {
-      console.error('Error saving emission factor:', error);
-      toast.error('Failed to save emission factor');
+      console.error('Error adding emission factor:', error);
+      toast.error(error instanceof Error ? error.message : 'Failed to add emission factor');
+    }
+  };
+
+  const handleEdit = (factor: EmissionFactorData) => {
+    setEditingFactor(factor);
+    setShowEditModal(true);
+  };
+
+  const handleUpdate = async (updatedFactor: EmissionFactorData) => {
+    if (!updatedFactor._id) {
+      toast.error('Cannot update: Missing emission factor ID');
+      return;
+    }
+
+    setIsLoading(true);
+    try {
+      const url = '/api/emission-factors/factors';
+      const method = 'PUT';
+
+      // Ensure _id is included when editing
+      const dataToSend = { ...updatedFactor, _id: updatedFactor._id };
+
+      console.log('Updating emission factor:', {
+        method,
+        dataToSend
+      });
+
+      const response = await fetch(url, {
+        method,
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(dataToSend),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || `HTTP error! status: ${response.status}`);
+      }
+
+      toast.success('Emission factor updated successfully');
+      fetchEmissionFactors(); // Refresh the table
+    } catch (error) {
+      console.error('Error updating emission factor:', error);
+      toast.error(`Failed to update emission factor: ${error instanceof Error ? error.message : 'Unknown error'}`);
     } finally {
       setIsLoading(false);
     }
   };
 
-  const handleEdit = (factor: EmissionFactorData) => {
-    setFormData(factor);
-    setIsEditing(true);
-    setEditingId(factor._id || null);
+  // Delete functionality
+  const handleDelete = (factor: EmissionFactorData) => {
+    setDeletingFactor(factor);
+    setShowDeleteModal(true);
+  };
+
+  const handleBulkDelete = () => {
+    if (selectedFactors.size === 0) {
+      toast.error('Please select at least one emission factor to delete');
+      return;
+    }
+    setShowBulkDeleteModal(true);
+  };
+
+  const confirmDelete = async () => {
+    if (!deletingFactor?._id) {
+      toast.error('Cannot delete: Missing emission factor ID');
+      return;
+    }
+
+    setIsDeleting(true);
+    try {
+      const response = await fetch(`/api/emission-factors/factors?id=${deletingFactor._id}`, {
+        method: 'DELETE',
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || `HTTP error! status: ${response.status}`);
+      }
+
+      toast.success('Emission factor deleted successfully');
+      fetchEmissionFactors(); // Refresh the table
+      setShowDeleteModal(false);
+      setDeletingFactor(null);
+    } catch (error) {
+      console.error('Error deleting emission factor:', error);
+      toast.error(`Failed to delete emission factor: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
+  const confirmBulkDelete = async () => {
+    if (selectedFactors.size === 0) {
+      toast.error('No emission factors selected for deletion');
+      return;
+    }
+
+    setIsDeleting(true);
+    try {
+      // Delete each selected factor
+      const deletePromises = Array.from(selectedFactors).map(async (id) => {
+        const response = await fetch(`/api/emission-factors/factors?id=${id}`, {
+          method: 'DELETE',
+        });
+        
+        if (!response.ok) {
+          const errorData = await response.json();
+          throw new Error(errorData.error || `HTTP error! status: ${response.status}`);
+        }
+        
+        return { id, success: true };
+      });
+
+      const results = await Promise.allSettled(deletePromises);
+      const successful = results.filter(r => r.status === 'fulfilled').length;
+      const failed = results.length - successful;
+
+      if (successful > 0) {
+        toast.success(`Successfully deleted ${successful} emission factor${successful > 1 ? 's' : ''}`);
+        if (failed > 0) {
+          toast.error(`Failed to delete ${failed} emission factor${failed > 1 ? 's' : ''}`);
+        }
+        fetchEmissionFactors(); // Refresh the table
+        setSelectedFactors(new Set()); // Clear selection
+      } else {
+        toast.error('Failed to delete any emission factors');
+      }
+
+      setShowBulkDeleteModal(false);
+    } catch (error) {
+      console.error('Error during bulk delete:', error);
+      toast.error(`Failed to delete emission factors: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
+  const handleSelectFactor = (factorId: string | number, checked: boolean) => {
+    if (typeof factorId === 'string') {
+      if (checked) {
+        setSelectedFactors(prev => new Set([...prev, factorId]));
+      } else {
+        setSelectedFactors(prev => {
+          const newSet = new Set(prev);
+          newSet.delete(factorId);
+          return newSet;
+        });
+      }
+    }
+  };
+
+  const handleSelectAll = (checked: boolean) => {
+    if (checked) {
+      setSelectedFactors(new Set(emissionFactors.map(f => f._id!).filter(Boolean)));
+    } else {
+      setSelectedFactors(new Set());
+    }
   };
 
   const resetForm = () => {
@@ -144,13 +410,14 @@ const Stage1: React.FC<Stage1Props> = ({ onNext }) => {
     });
     setIsEditing(false);
     setEditingId(null);
+    setFieldErrors({}); // Clear errors on reset
   };
 
   return (
     <div className="stage">
       <h2 className="stage-title">Import Standard Emission Factors</h2>
       {/* CSV Import/Export Manager */}
-      <EmissionFactorCSVManager />
+      <EmissionFactorCSVManager onImportSuccess={fetchEmissionFactors} />
 
       <h1 style={{ textAlign: 'center', marginBottom: '20px' }}>OR</h1>
 
@@ -169,9 +436,19 @@ const Stage1: React.FC<Stage1Props> = ({ onNext }) => {
                 name="description"
                 value={formData.description}
                 onChange={handleInputChange}
+                onFocus={() => handleFieldFocus('description')}
+                onBlur={() => handleFieldBlur('description')}
                 required
-                className="form-input"
+                className={`form-input ${fieldErrors.description ? 'form-input-error' : ''}`}
               />
+              {showTooltips.description && (
+                <div className="form-tooltip">
+                  {getTooltipContent('description')}
+                </div>
+              )}
+              {fieldErrors.description && (
+                <div className="form-error-message">{fieldErrors.description}</div>
+              )}
             </div>
             <div className="form-group">
               <label htmlFor="scope">Scope *</label>
@@ -180,13 +457,24 @@ const Stage1: React.FC<Stage1Props> = ({ onNext }) => {
                 name="scope"
                 value={formData.scope}
                 onChange={handleInputChange}
+                onFocus={() => handleFieldFocus('scope')}
+                onBlur={() => handleFieldBlur('scope')}
                 required
-                className="form-input"
+                className={`form-input ${fieldErrors.scope ? 'form-input-error' : ''}`}
               >
-                <option value="Scope 1">Scope 1</option>
-                <option value="Scope 2">Scope 2</option>
-                <option value="Scope 3">Scope 3</option>
+                <option value="">Select scope</option>
+                {emissionFactorFields.find(f => f.key === 'scope')?.validation?.enumOptions?.map((option) => (
+                  <option key={option} value={option}>{option}</option>
+                ))}
               </select>
+              {showTooltips.scope && (
+                <div className="form-tooltip">
+                  {getTooltipContent('scope')}
+                </div>
+              )}
+              {fieldErrors.scope && (
+                <div className="form-error-message">{fieldErrors.scope}</div>
+              )}
             </div>
             <div className="form-group">
               <label htmlFor="category">Category *</label>
@@ -196,9 +484,19 @@ const Stage1: React.FC<Stage1Props> = ({ onNext }) => {
                 name="category"
                 value={formData.category}
                 onChange={handleInputChange}
+                onFocus={() => handleFieldFocus('category')}
+                onBlur={() => handleFieldBlur('category')}
                 required
-                className="form-input"
+                className={`form-input ${fieldErrors.category ? 'form-input-error' : ''}`}
               />
+              {showTooltips.category && (
+                <div className="form-tooltip">
+                  {getTooltipContent('category')}
+                </div>
+              )}
+              {fieldErrors.category && (
+                <div className="form-error-message">{fieldErrors.category}</div>
+              )}
             </div>
             <div className="form-group">
               <label htmlFor="location">Country/Region/Location *</label>
@@ -208,9 +506,19 @@ const Stage1: React.FC<Stage1Props> = ({ onNext }) => {
                 name="location"
                 value={formData.location}
                 onChange={handleInputChange}
+                onFocus={() => handleFieldFocus('location')}
+                onBlur={() => handleFieldBlur('location')}
                 required
-                className="form-input"
+                className={`form-input ${fieldErrors.location ? 'form-input-error' : ''}`}
               />
+              {showTooltips.location && (
+                <div className="form-tooltip">
+                  {getTooltipContent('location')}
+                </div>
+              )}
+              {fieldErrors.location && (
+                <div className="form-error-message">{fieldErrors.location}</div>
+              )}
             </div>
             <div className="form-group">
               <label htmlFor="unit">Unit on Quantity (e.g. kg, kWh, litre, etc.) *</label> 
@@ -220,9 +528,19 @@ const Stage1: React.FC<Stage1Props> = ({ onNext }) => {
                 name="unit"
                 value={formData.unit}
                 onChange={handleInputChange}
+                onFocus={() => handleFieldFocus('unit')}
+                onBlur={() => handleFieldBlur('unit')}
                 required
-                className="form-input"
+                className={`form-input ${fieldErrors.unit ? 'form-input-error' : ''}`}
               />
+              {showTooltips.unit && (
+                <div className="form-tooltip">
+                  {getTooltipContent('unit')}
+                </div>
+              )}
+              {fieldErrors.unit && (
+                <div className="form-error-message">{fieldErrors.unit}</div>
+              )}
             </div>
             <div className="form-group">
               <label htmlFor="dataSource">Data Source/Collection Method *</label>
@@ -232,9 +550,19 @@ const Stage1: React.FC<Stage1Props> = ({ onNext }) => {
                 name="dataSource"
                 value={formData.dataSource}
                 onChange={handleInputChange}
+                onFocus={() => handleFieldFocus('dataSource')}
+                onBlur={() => handleFieldBlur('dataSource')}
                 required
-                className="form-input"
+                className={`form-input ${fieldErrors.dataSource ? 'form-input-error' : ''}`}
               />
+              {showTooltips.dataSource && (
+                <div className="form-tooltip">
+                  {getTooltipContent('dataSource')}
+                </div>
+              )}
+              {fieldErrors.dataSource && (
+                <div className="form-error-message">{fieldErrors.dataSource}</div>
+              )}
             </div>
           </div>
         </div>
@@ -249,14 +577,24 @@ const Stage1: React.FC<Stage1Props> = ({ onNext }) => {
               name="methodType"
               value={formData.methodType}
               onChange={handleInputChange}
+              onFocus={() => handleFieldFocus('methodType')}
+              onBlur={() => handleFieldBlur('methodType')}
               required
-              className="form-input"
+              className={`form-input ${fieldErrors.methodType ? 'form-input-error' : ''}`}
             >
               <option value="">Select method type</option>
               {emissionFactorFields.find(f => f.key === 'methodType')?.validation?.enumOptions?.map((option) => (
                 <option key={option} value={option}>{option}</option>
               ))}
             </select>
+            {showTooltips.methodType && (
+              <div className="form-tooltip">
+                {getTooltipContent('methodType')}
+              </div>
+            )}
+            {fieldErrors.methodType && (
+              <div className="form-error-message">{fieldErrors.methodType}</div>
+            )}
           </div>
         </div>
 
@@ -272,10 +610,20 @@ const Stage1: React.FC<Stage1Props> = ({ onNext }) => {
                 name="co2ePerUnit"
                 value={formData.co2ePerUnit}
                 onChange={handleInputChange}
+                onFocus={() => handleFieldFocus('co2ePerUnit')}
+                onBlur={() => handleFieldBlur('co2ePerUnit')}
                 step="0.01"
                 required
-                className="form-input"
+                className={`form-input ${fieldErrors.co2ePerUnit ? 'form-input-error' : ''}`}
               />
+              {showTooltips.co2ePerUnit && (
+                <div className="form-tooltip">
+                  {getTooltipContent('co2ePerUnit')}
+                </div>
+              )}
+              {fieldErrors.co2ePerUnit && (
+                <div className="form-error-message">{fieldErrors.co2ePerUnit}</div>
+              )}
             </div>
             <div className="form-group">
               <label htmlFor="emissionFactorUnit">Emission Factor Unit *</label>
@@ -285,9 +633,19 @@ const Stage1: React.FC<Stage1Props> = ({ onNext }) => {
                 name="emissionFactorUnit"
                 value={formData.emissionFactorUnit}
                 onChange={handleInputChange}
+                onFocus={() => handleFieldFocus('emissionFactorUnit')}
+                onBlur={() => handleFieldBlur('emissionFactorUnit')}
                 required
-                className="form-input"
+                className={`form-input ${fieldErrors.emissionFactorUnit ? 'form-input-error' : ''}`}
               />
+              {showTooltips.emissionFactorUnit && (
+                <div className="form-tooltip">
+                  {getTooltipContent('emissionFactorUnit')}
+                </div>
+              )}
+              {fieldErrors.emissionFactorUnit && (
+                <div className="form-error-message">{fieldErrors.emissionFactorUnit}</div>
+              )}
             </div>
             <div className="form-group">
               <label htmlFor="ghgReportingStandard">GHG Reporting Standard *</label>
@@ -300,14 +658,24 @@ const Stage1: React.FC<Stage1Props> = ({ onNext }) => {
                 name="ghgReportingStandard"
                 value={formData.ghgReportingStandard}
                 onChange={handleInputChange}
+                onFocus={() => handleFieldFocus('ghgReportingStandard')}
+                onBlur={() => handleFieldBlur('ghgReportingStandard')}
                 required
-                className="form-input"
+                className={`form-input ${fieldErrors.ghgReportingStandard ? 'form-input-error' : ''}`}
               >
                 <option value="">Select a standard</option>
                 {ghgStandards.map((standard) => (
                   <option key={standard} value={standard}>{standard}</option>
                 ))}
               </select>
+              {showTooltips.ghgReportingStandard && (
+                <div className="form-tooltip">
+                  {getTooltipContent('ghgReportingStandard')}
+                </div>
+              )}
+              {fieldErrors.ghgReportingStandard && (
+                <div className="form-error-message">{fieldErrors.ghgReportingStandard}</div>
+              )}
             </div>
             <div className="form-group">
               <label htmlFor="sourceOrDisclosureRequirement">Source or Disclosure Requirement *</label>
@@ -317,10 +685,20 @@ const Stage1: React.FC<Stage1Props> = ({ onNext }) => {
                 name="sourceOrDisclosureRequirement"
                 value={formData.sourceOrDisclosureRequirement}
                 onChange={handleInputChange}
+                onFocus={() => handleFieldFocus('sourceOrDisclosureRequirement')}
+                onBlur={() => handleFieldBlur('sourceOrDisclosureRequirement')}
                 required
-                className="form-input"
+                className={`form-input ${fieldErrors.sourceOrDisclosureRequirement ? 'form-input-error' : ''}`}
                 placeholder="Enter a weblink or remarks"
               />
+              {showTooltips.sourceOrDisclosureRequirement && (
+                <div className="form-tooltip">
+                  {getTooltipContent('sourceOrDisclosureRequirement')}
+                </div>
+              )}
+              {fieldErrors.sourceOrDisclosureRequirement && (
+                <div className="form-error-message">{fieldErrors.sourceOrDisclosureRequirement}</div>
+              )}
             </div>
           </div>
         </div>
@@ -340,54 +718,28 @@ const Stage1: React.FC<Stage1Props> = ({ onNext }) => {
       {/* Data Table */}
       <div className="data-section">
         <h3 className="section-title">Saved Emission Factors</h3>
-        <div className="table-container">
-          <table className="data-table">
-            <thead>
-              <tr>
-                <th>Description</th>
-                <th>Scope</th>
-                <th>Category</th>
-                <th>Location</th>
-                <th>Method</th>
-                <th>CO2e/Unit</th>
-                <th>GHG Reporting Standard</th>
-                <th>Source/Disclosure</th>
-                <th>Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {emissionFactors.map((factor) => (
-                <tr key={factor._id}>
-                  <td>{factor.description}</td>
-                  <td>{factor.scope}</td>
-                  <td>{factor.category}</td>
-                  <td>{factor.location}</td>
-                  <td>{factor.methodType}</td>
-                  <td>{factor.co2ePerUnit} {factor.emissionFactorUnit}</td>
-                  <td>{factor.ghgReportingStandard || 'N/A'}</td>
-                  <td>
-                    {factor.sourceOrDisclosureRequirement &&
-                      /^https?:\/\//.test(factor.sourceOrDisclosureRequirement.trim()) ? (
-                      <a href={factor.sourceOrDisclosureRequirement} target="_blank" rel="noopener noreferrer">
-                        {factor.sourceOrDisclosureRequirement}
-                      </a>
-                    ) : (
-                      factor.sourceOrDisclosureRequirement || 'N/A'
-                    )}
-                  </td>
-                  <td>
-                    <button
-                      onClick={() => handleEdit(factor)}
-                      className="btn btn-small btn-secondary"
-                    >
-                      Edit
-                    </button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+        
+        {/* Use unified table component */}
+        {emissionFactors.length > 0 && (
+          <EmissionFactorTable
+            data={emissionFactors}
+            selectedRows={selectedFactors}
+            onRowSelect={handleSelectFactor}
+            onSelectAll={handleSelectAll}
+            onEdit={handleEdit}
+            onDelete={handleDelete}
+            onBulkDelete={handleBulkDelete}
+            isDeleting={isDeleting}
+            showBulkDelete={true}
+            tableType="saved"
+          />
+        )}
+        
+        {emissionFactors.length === 0 && (
+          <div className="no-data">
+            <p>No emission factors added yet. Add your first emission factor above or import from CSV.</p>
+          </div>
+        )}
       </div>
 
       <div className="stage-actions">
@@ -395,6 +747,45 @@ const Stage1: React.FC<Stage1Props> = ({ onNext }) => {
           Next: Reporting Activity Data
         </button>
       </div>
+
+      {/* Edit Emission Factor Modal */}
+      <EditEmissionFactorModal
+        isOpen={showEditModal}
+        onClose={() => {
+          setShowEditModal(false);
+          setEditingFactor(null);
+        }}
+        factor={editingFactor}
+        onUpdate={handleUpdate}
+        ghgStandards={ghgStandards}
+      />
+
+      {/* Delete Confirmation Modal */}
+      <DeleteConfirmationModal
+        isOpen={showDeleteModal}
+        onClose={() => {
+          setShowDeleteModal(false);
+          setDeletingFactor(null);
+        }}
+        onConfirm={confirmDelete}
+        title="Delete Emission Factor"
+        message="Are you sure you want to delete this emission factor? This action cannot be undone."
+        confirmText="Delete"
+        cancelText="Cancel"
+      />
+
+      {/* Bulk Delete Confirmation Modal */}
+      <DeleteConfirmationModal
+        isOpen={showBulkDeleteModal}
+        onClose={() => setShowBulkDeleteModal(false)}
+        onConfirm={confirmBulkDelete}
+        title="Bulk Delete Emission Factors"
+        message="Are you sure you want to delete the selected emission factors? This action cannot be undone."
+        confirmText="Delete All"
+        cancelText="Cancel"
+        isBulkDelete={true}
+        selectedCount={selectedFactors.size}
+      />
     </div>
   );
 };

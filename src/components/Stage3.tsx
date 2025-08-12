@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Chart as ChartJS, CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend } from 'chart.js';
 import { Bar } from 'react-chartjs-2';
-import toast from 'react-hot-toast';
+import { toast } from 'react-hot-toast';
 
 ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend);
 
@@ -34,7 +34,7 @@ const Stage3: React.FC = () => {
   const [activities, setActivities] = useState<ReportingActivity[]>([]);
   const [emissionFactors, setEmissionFactors] = useState<EmissionFactor[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const chartRef = useRef<ChartJS>(null);
+  const chartRef = useRef<ChartJS<'bar'> | null>(null);
 
   useEffect(() => {
     fetchData();
