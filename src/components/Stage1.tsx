@@ -7,6 +7,8 @@ import EditEmissionFactorModal from './EditEmissionFactorModal';
 import DeleteConfirmationModal from './DeleteConfirmationModal';
 import EmissionFactorTable from './EmissionFactorTable';
 import { emissionFactorFields, EmissionFactorData } from '../config/emissionFactorSchema';
+import indexedDBService from '@/lib/indexedDB';
+import type { EmissionFactor } from '@/lib/indexedDB';
 
 interface Stage1Props {
   onNext: () => void;
@@ -53,11 +55,7 @@ const Stage1: React.FC<Stage1Props> = ({ onNext }) => {
 
   const fetchEmissionFactors = async () => {
     try {
-      const response = await fetch('/api/emission-factors/factors');
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-      const data = await response.json();
+      const data = await indexedDBService.getAllEmissionFactors();
       // Ensure data is always an array
       setEmissionFactors(Array.isArray(data) ? data : []);
     } catch (error) {
@@ -70,14 +68,10 @@ const Stage1: React.FC<Stage1Props> = ({ onNext }) => {
 
   const fetchGhgStandards = async () => {
     try {
-      // The endpoint returns the list of GHG Reporting Standards
-      const response = await fetch('/api/emission-factors/factors/standards');
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-      const data = await response.json();
+      const data = await indexedDBService.getAllGhgReportingStandards();
+      const standards = data.map(standard => standard.name);
       // Ensure data is always an array
-      setGhgStandards(Array.isArray(data) ? data : []);
+      setGhgStandards(Array.isArray(standards) ? standards : []);
     } catch (error) {
       console.error('Error fetching GHG Reporting Standards:', error);
       toast.error('Failed to fetch GHG Reporting Standards');
@@ -198,20 +192,8 @@ const Stage1: React.FC<Stage1Props> = ({ onNext }) => {
     }
 
     try {
-      const response = await fetch('/api/emission-factors/factors', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(formData),
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || 'Failed to add emission factor');
-      }
-
-      const newFactor = await response.json();
+      const newFactorId = await indexedDBService.addEmissionFactor(formData);
+      const newFactor = { ...formData, _id: newFactorId };
       setEmissionFactors(prev => [...prev, newFactor]);
       
       // Reset form
@@ -249,30 +231,7 @@ const Stage1: React.FC<Stage1Props> = ({ onNext }) => {
 
     setIsLoading(true);
     try {
-      const url = '/api/emission-factors/factors';
-      const method = 'PUT';
-
-      // Ensure _id is included when editing
-      const dataToSend = { ...updatedFactor, _id: updatedFactor._id };
-
-      console.log('Updating emission factor:', {
-        method,
-        dataToSend
-      });
-
-      const response = await fetch(url, {
-        method,
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(dataToSend),
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || `HTTP error! status: ${response.status}`);
-      }
-
+      await indexedDBService.updateEmissionFactor(updatedFactor as EmissionFactor);
       toast.success('Emission factor updated successfully');
       fetchEmissionFactors(); // Refresh the table
     } catch (error) {
@@ -305,15 +264,7 @@ const Stage1: React.FC<Stage1Props> = ({ onNext }) => {
 
     setIsDeleting(true);
     try {
-      const response = await fetch(`/api/emission-factors/factors?id=${deletingFactor._id}`, {
-        method: 'DELETE',
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || `HTTP error! status: ${response.status}`);
-      }
-
+      await indexedDBService.deleteEmissionFactor(deletingFactor._id);
       toast.success('Emission factor deleted successfully');
       fetchEmissionFactors(); // Refresh the table
       setShowDeleteModal(false);
@@ -336,15 +287,7 @@ const Stage1: React.FC<Stage1Props> = ({ onNext }) => {
     try {
       // Delete each selected factor
       const deletePromises = Array.from(selectedFactors).map(async (id) => {
-        const response = await fetch(`/api/emission-factors/factors?id=${id}`, {
-          method: 'DELETE',
-        });
-        
-        if (!response.ok) {
-          const errorData = await response.json();
-          throw new Error(errorData.error || `HTTP error! status: ${response.status}`);
-        }
-        
+        await indexedDBService.deleteEmissionFactor(id);
         return { id, success: true };
       });
 

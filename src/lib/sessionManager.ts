@@ -131,7 +131,7 @@ class SessionManager {
     );
   }
 
-  public cleanupData(): void {
+  public async cleanupData(): Promise<void> {
     if (this.onDataCleanup) {
       this.onDataCleanup();
     }

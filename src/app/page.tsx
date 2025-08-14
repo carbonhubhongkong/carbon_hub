@@ -9,6 +9,7 @@ import Stage2 from '@/components/Stage2';
 import Stage3 from '@/components/Stage3';
 import InactivityModal from '@/components/InactivityModal';
 import SessionManager from '@/lib/sessionManager';
+import indexedDBService from '@/lib/indexedDB';
 
 export default function Home() {
   const [currentStage, setCurrentStage] = useState(1);
@@ -29,17 +30,10 @@ export default function Home() {
 
     manager.setDataCleanupCallback(async () => {
       try {
-        const response = await fetch('/api/clear-all-data', {
-          method: 'DELETE',
-        });
-        
-        if (response.ok) {
-          console.log('Data cleared successfully');
-          // Refresh the page to reset all forms
-          window.location.reload();
-        } else {
-          console.error('Failed to clear data');
-        }
+        await indexedDBService.clearAllData();
+        console.log('Data cleared successfully');
+        // Refresh the page to reset all forms
+        window.location.reload();
       } catch (error) {
         console.error('Error clearing data:', error);
       }
@@ -111,8 +105,7 @@ export default function Home() {
         {/* Data Retention Notice */}
         <div className="data-retention-notice">
           <p>
-            <strong>Note:</strong> Your input data is only kept for 20 minutes unless you choose to keep it longer. 
-            All records will be deleted after 10 minutes of inactivity on the retention popup.
+            <strong>Note:</strong> Your input data will be automatically deleted after 20 minutes of inactivity to ensure data security.
           </p>
         </div>
       </div>

@@ -1345,3 +1345,97 @@ select {
   border-radius: 8px;
   color: #E65100;
 }
+
+/* Data Manager Component */
+.data-manager {
+  margin: 40px 0;
+  padding: 30px;
+  background-color: var(--surface);
+  border-radius: 12px;
+  box-shadow: 0 4px 12px var(--shadow);
+  border: 1px solid var(--border);
+}
+
+.data-manager .section-title {
+  margin-bottom: 20px;
+  color: var(--text-primary);
+  font-size: 1.5rem;
+  font-weight: 600;
+}
+
+.data-actions {
+  display: flex;
+  gap: 15px;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+}
+
+.data-actions .btn {
+  padding: 12px 24px;
+  font-size: 14px;
+  font-weight: 500;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 120px;
+}
+
+.data-actions .btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.data-actions .btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.data-actions .btn-danger {
+  background-color: var(--error);
+  color: white;
+}
+
+.data-actions .btn-danger:hover {
+  background-color: #d32f2f;
+}
+
+.data-info {
+  padding: 20px;
+  background-color: var(--background);
+  border-radius: 8px;
+  border: 1px solid var(--border);
+}
+
+.data-info p {
+  margin-bottom: 8px;
+  color: var(--text-secondary);
+  font-size: 14px;
+}
+
+.data-info p:last-child {
+  margin-bottom: 0;
+}
+
+/* Responsive adjustments for data manager */
+@media (max-width: 768px) {
+  .data-actions {
+    flex-direction: column;
+    gap: 10px;
+  }
+  
+  .data-actions .btn {
+    width: 100%;
+    min-width: auto;
+  }
+  
+  .data-manager {
+    padding: 20px;
+    margin: 20px 0;
+  }
+}

@@ -5,6 +5,7 @@ import { toast } from 'react-hot-toast';
 import { emissionFactorFields, EmissionFactorData } from '../config/emissionFactorSchema';
 import EditEmissionFactorModal from './EditEmissionFactorModal';
 import EmissionFactorTable from './EmissionFactorTable';
+import indexedDBService from '@/lib/indexedDB';
 
 // Helper: Generate CSV template (headers + example row)
 function generateCSVTemplate() {
@@ -423,18 +424,8 @@ const EmissionFactorCSVManager: React.FC<EmissionFactorCSVManagerProps> = ({ onI
       for (let i = 0; i < csvRows.length; i++) {
         const row = csvRows[i];
         try {
-          const response = await fetch('/api/emission-factors/factors', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(row)
-          });
-          
-          if (response.ok) {
-            added++;
-          } else {
-            failed++;
-            console.error(`Failed to import row ${i + 1}:`, await response.text());
-          }
+          await indexedDBService.addEmissionFactor(row);
+          added++;
         } catch (error) {
           failed++;
           console.error(`Error importing row ${i + 1}:`, error);

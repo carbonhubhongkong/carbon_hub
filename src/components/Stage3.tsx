@@ -4,31 +4,12 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Chart as ChartJS, CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend } from 'chart.js';
 import { Bar } from 'react-chartjs-2';
 import { toast } from 'react-hot-toast';
+import indexedDBService from '@/lib/indexedDB';
+import type { ReportingActivity, EmissionFactor } from '@/lib/indexedDB';
 
 ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend);
 
-interface ReportingActivity {
-  _id: string;
-  reportingPeriodStart: string;
-  reportingPeriodEnd: string;
-  scope: string;
-  category: string;
-  activityName: string;
-  location: string;
-  quantity: number;
-  emissionFactorId: string;
-  remarks?: string;
-  calculatedEmissions?: number;
-}
-
-interface EmissionFactor {
-  _id: string;
-  description: string;
-  scope: string;
-  category: string;
-  co2ePerUnit: number;
-  emissionFactorUnit: string;
-}
+// Using types from IndexedDB service
 
 const Stage3: React.FC = () => {
   const [activities, setActivities] = useState<ReportingActivity[]>([]);
@@ -42,13 +23,10 @@ const Stage3: React.FC = () => {
 
   const fetchData = async () => {
     try {
-      const [activitiesResponse, factorsResponse] = await Promise.all([
-        fetch('/api/reporting-activities'),
-        fetch('/api/emission-factors/general')
+      const [activitiesData, factorsData] = await Promise.all([
+        indexedDBService.getAllReportingActivities(),
+        indexedDBService.getAllEmissionFactors()
       ]);
-
-      const activitiesData = await activitiesResponse.json();
-      const factorsData = await factorsResponse.json();
 
       setActivities(activitiesData);
       setEmissionFactors(factorsData);
