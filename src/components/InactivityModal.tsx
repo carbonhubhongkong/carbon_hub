@@ -1,7 +1,6 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { toast } from 'react-hot-toast';
 
 interface InactivityModalProps {
   isOpen: boolean;
@@ -17,6 +16,31 @@ const InactivityModal: React.FC<InactivityModalProps> = ({
   timeRemaining
 }) => {
   const [countdown, setCountdown] = useState(timeRemaining);
+
+  // Prevent body scroll and interaction when modal is open
+  useEffect(() => {
+    if (isOpen) {
+      // Freeze the page by preventing scroll and interaction
+      document.body.style.overflow = 'hidden';
+      document.body.style.pointerEvents = 'none';
+      
+      // Re-enable pointer events for the modal itself
+      const modalContent = document.querySelector('.modal-content') as HTMLElement;
+      if (modalContent) {
+        modalContent.style.pointerEvents = 'auto';
+      }
+    } else {
+      // Restore normal page behavior
+      document.body.style.overflow = '';
+      document.body.style.pointerEvents = '';
+    }
+
+    // Cleanup function
+    return () => {
+      document.body.style.overflow = '';
+      document.body.style.pointerEvents = '';
+    };
+  }, [isOpen]);
 
   useEffect(() => {
     if (!isOpen) return;
@@ -51,9 +75,16 @@ const InactivityModal: React.FC<InactivityModalProps> = ({
     return ((totalTime - countdown) / totalTime) * 100;
   };
 
+  const getProgressColor = (): string => {
+    const percentage = getProgressPercentage();
+    if (percentage < 50) return 'var(--success)';
+    if (percentage < 80) return 'var(--accent)';
+    return 'var(--error)';
+  };
+
   return (
-    <div className="modal-overlay">
-      <div className="modal-content">
+    <div className="modal-overlay inactivity-modal-overlay">
+      <div className="modal-content inactivity-modal-content">
         <div className="modal-header">
           <h2 className="modal-title">Session Timeout Warning</h2>
           <div className="countdown-container">
@@ -63,7 +94,10 @@ const InactivityModal: React.FC<InactivityModalProps> = ({
             <div className="countdown-progress">
               <div 
                 className="countdown-progress-bar" 
-                style={{ width: `${getProgressPercentage()}%` }}
+                style={{ 
+                  width: `${getProgressPercentage()}%`,
+                  backgroundColor: getProgressColor()
+                }}
               ></div>
             </div>
           </div>
@@ -72,7 +106,7 @@ const InactivityModal: React.FC<InactivityModalProps> = ({
         <div className="modal-body">
           <div className="warning-icon">⚠️</div>
           <p className="modal-message">
-            You've been inactive for 20 minutes. Your input data will be automatically deleted in{' '}
+            You&apos;ve been inactive for 20 minutes. Your input data will be automatically deleted in{' '}
             <strong>{formatTime(countdown)}</strong> unless you choose to keep it longer.
           </p>
           
@@ -96,7 +130,7 @@ const InactivityModal: React.FC<InactivityModalProps> = ({
             onClick={onClearData}
             className="btn btn-secondary modal-btn"
           >
-            Please Clear All Records
+            Clear All Records
           </button>
         </div>
 

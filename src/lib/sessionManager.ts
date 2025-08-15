@@ -17,9 +17,23 @@ class SessionManager {
   private onInactivityWarning: (() => void) | null = null;
   private onDataCleanup: (() => void) | null = null;
 
-  // CONFIGURATION: Change these values to adjust timing
+  // ============================================================================
+  // CONFIGURATION: Easily adjust timing intervals here
+  // ============================================================================
+
+  // INACTIVITY_TIMEOUT: How long to wait before showing the retention popup
+  // Default: 20 minutes (20 * 60 * 1000 milliseconds)
+  // To change: Modify the value below (e.g., 30 minutes = 30 * 60 * 1000)
   private readonly INACTIVITY_TIMEOUT = 20 * 60 * 1000; // 20 minutes in milliseconds
+
+  // MODAL_TIMEOUT: How long the user has to respond to the popup before auto-deletion
+  // Default: 10 minutes (10 * 60 * 1000 milliseconds)
+  // To change: Modify the value below (e.g., 15 minutes = 15 * 60 * 1000)
   private readonly MODAL_TIMEOUT = 10 * 60 * 1000; // 10 minutes in milliseconds
+
+  // ============================================================================
+  // END CONFIGURATION
+  // ============================================================================
 
   constructor() {
     this.sessionId = this.generateSessionId();
@@ -118,7 +132,7 @@ class SessionManager {
       this.onInactivityWarning();
     }
 
-    // Start modal timer
+    // Start modal timer for auto-deletion
     this.modalTimer = setTimeout(() => {
       this.cleanupData();
     }, this.MODAL_TIMEOUT);
@@ -126,8 +140,9 @@ class SessionManager {
 
   public extendSession(): void {
     this.updateActivity();
+    const minutes = Math.floor(this.INACTIVITY_TIMEOUT / (60 * 1000));
     toast.success(
-      "Session extended! Your data is safe for another 20 minutes."
+      `Session extended! Your data is safe for another ${minutes} minutes.`
     );
   }
 
@@ -181,6 +196,15 @@ class SessionManager {
 
     const elapsed = Date.now() - sessionData.modalStartTime;
     return Math.max(0, this.MODAL_TIMEOUT - elapsed);
+  }
+
+  // Getter methods for configuration values (useful for UI display)
+  public getInactivityTimeout(): number {
+    return this.INACTIVITY_TIMEOUT;
+  }
+
+  public getModalTimeout(): number {
+    return this.MODAL_TIMEOUT;
   }
 
   public setInactivityWarningCallback(callback: () => void): void {

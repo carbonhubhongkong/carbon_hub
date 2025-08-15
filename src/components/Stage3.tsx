@@ -70,7 +70,7 @@ const Stage3: React.FC = () => {
       activity.category,
       activity.location,
       activity.quantity,
-      getEmissionFactorDescription(activity.emissionFactorId),
+      getEmissionFactorDescription(activity.emissionFactorId || ''),
       activity.calculatedEmissions?.toFixed(2) || '0',
       activity.remarks || ''
     ]);
@@ -220,7 +220,7 @@ const Stage3: React.FC = () => {
                       <td>{activity.category}</td>
                       <td>{activity.location}</td>
                       <td>{activity.quantity}</td>
-                      <td>{getEmissionFactorDescription(activity.emissionFactorId)}</td>
+                      <td>{getEmissionFactorDescription(activity.emissionFactorId || '')}</td>
                       <td>{activity.calculatedEmissions?.toFixed(2)}</td>
                     </tr>
                   ))}

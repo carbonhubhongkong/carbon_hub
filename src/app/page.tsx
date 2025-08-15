@@ -16,11 +16,17 @@ export default function Home() {
   const [sessionManager, setSessionManager] = useState<SessionManager | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [modalTimeRemaining, setModalTimeRemaining] = useState(0);
+  const [inactivityMinutes, setInactivityMinutes] = useState(20);
+  const [modalMinutes, setModalMinutes] = useState(10);
 
   useEffect(() => {
     // Initialize session manager
     const manager = new SessionManager();
     setSessionManager(manager);
+
+    // Get configuration values for display
+    setInactivityMinutes(Math.floor(manager.getInactivityTimeout() / (60 * 1000)));
+    setModalMinutes(Math.floor(manager.getModalTimeout() / (60 * 1000)));
 
     // Set up callbacks
     manager.setInactivityWarningCallback(() => {
@@ -105,7 +111,7 @@ export default function Home() {
         {/* Data Retention Notice */}
         <div className="data-retention-notice">
           <p>
-            <strong>Note:</strong> Your input data will be automatically deleted after 20 minutes of inactivity to ensure data security.
+            <strong>Note:</strong> Your input data is only kept for {inactivityMinutes} minutes unless you choose to keep it longer. All records will be deleted after {modalMinutes} minutes of inactivity on the retention popup.
           </p>
         </div>
       </div>

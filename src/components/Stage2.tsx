@@ -3,6 +3,8 @@
 import React, { useState, useEffect } from 'react';
 import * as toastModule from 'react-hot-toast';
 import EditActivityModal from './EditActivityModal';
+import DeleteConfirmationModal from './DeleteConfirmationModal';
+import { FaEdit, FaTrash } from 'react-icons/fa';
 import indexedDBService from '@/lib/indexedDB';
 import type { ReportingActivity, EmissionFactor } from '@/lib/indexedDB';
 const toast = toastModule.default || toastModule;
@@ -34,6 +36,11 @@ const Stage2: React.FC<Stage2Props> = ({ onNext }) => {
   const [connectionStatus, setConnectionStatus] = useState<'connected' | 'fallback' | 'error'>('connected');
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [editingActivity, setEditingActivity] = useState<ReportingActivity | null>(null);
+
+  // Delete functionality state
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [deletingActivity, setDeletingActivity] = useState<ReportingActivity | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   // New state for dropdown options
   const [locationOptions, setLocationOptions] = useState<string[]>([]);
@@ -275,6 +282,29 @@ const Stage2: React.FC<Stage2Props> = ({ onNext }) => {
   const handleEdit = (activity: ReportingActivity) => {
     setEditingActivity(activity);
     setIsEditModalOpen(true);
+  };
+
+  const handleDelete = (activity: ReportingActivity) => {
+    setDeletingActivity(activity);
+    setShowDeleteModal(true);
+  };
+
+  const confirmDelete = async () => {
+    if (!deletingActivity || !deletingActivity._id) return;
+
+    setIsDeleting(true);
+    try {
+      await indexedDBService.deleteReportingActivity(deletingActivity._id);
+      toast.success('Activity deleted successfully!');
+      setShowDeleteModal(false);
+      setDeletingActivity(null);
+      await refreshData();
+    } catch (error) {
+      console.error('Error deleting activity:', error);
+      toast.error('Failed to delete activity');
+    } finally {
+      setIsDeleting(false);
+    }
   };
 
   const resetForm = () => {
@@ -703,58 +733,6 @@ const Stage2: React.FC<Stage2Props> = ({ onNext }) => {
     <div className="stage">
       <h2 className="stage-title">Reporting Activity Data</h2>
       
-      {/* Debug Form State */}
-      <div style={{ 
-        background: '#f0f8ff', 
-        padding: '10px', 
-        margin: '10px 0', 
-        borderRadius: '4px',
-        fontSize: '12px',
-        fontFamily: 'monospace',
-        border: '1px solid #ccc'
-      }}>
-        <strong>Debug - Current Form State:</strong><br/>
-        Emission Factor ID: {formData.emissionFactorId} (type: {typeof formData.emissionFactorId})<br/>
-        Scope: {formData.scope}<br/>
-        Category: {formData.category}<br/>
-        Location: {formData.location}<br/>
-        Quantity: {formData.quantity}<br/>
-        Available Emission Factors: {emissionFactors.length}<br/>
-        {emissionFactors.length > 0 && (
-          <>
-            First Emission Factor ID: {emissionFactors[0]?._id} (type: {typeof emissionFactors[0]?._id})<br/>
-          </>
-        )}
-        <br/>
-        <button 
-          onClick={() => {
-            console.log('Stage2: Manual verification clicked');
-            console.log('Stage2: Current form data:', formData);
-            console.log('Stage2: All emission factors:', emissionFactors);
-            
-            if (formData.emissionFactorId) {
-              const selectedIdStr = String(formData.emissionFactorId);
-              console.log('Stage2: Selected ID as string:', selectedIdStr);
-              
-              const foundFactor = emissionFactors.find(f => String(f._id) === selectedIdStr);
-              console.log('Stage2: Found factor using string comparison:', foundFactor);
-              
-              if (foundFactor) {
-                toast.success(`Emission factor found: ${foundFactor.description}`);
-              } else {
-                toast.error(`No emission factor found with ID: ${selectedIdStr}`);
-              }
-            } else {
-              toast.error('No emission factor selected');
-            }
-          }}
-          className="btn btn-secondary"
-          style={{ fontSize: '10px', padding: '4px 8px' }}
-        >
-          Verify Selection
-        </button>
-      </div>
-      
       <form onSubmit={handleSubmit} className="activity-form">
         <div className="form-grid">
           <div className="form-group">
@@ -926,151 +904,6 @@ const Stage2: React.FC<Stage2Props> = ({ onNext }) => {
           )}
         </h3>
         
-        {/* Debug Information */}
-        <div className="debug-info" style={{ 
-          background: '#f5f5f5', 
-          padding: '10px', 
-          margin: '10px 0', 
-          borderRadius: '4px',
-          fontSize: '12px',
-          fontFamily: 'monospace'
-        }}>
-          <strong>Debug Info:</strong><br/>
-          Activities loaded: {activities.length}<br/>
-          Emission factors loaded: {emissionFactors.length}<br/>
-          {activities.length > 0 && (
-            <>
-              First activity emissionFactorId: {activities[0]?.emissionFactorId} (type: {typeof activities[0]?.emissionFactorId})<br/>
-              First activity calculatedEmissions: {activities[0]?.calculatedEmissions} (type: {typeof activities[0]?.calculatedEmissions})<br/>
-              First activity quantity: {activities[0]?.quantity} (type: {typeof activities[0]?.quantity})<br/>
-              First activity ID: {activities[0]?._id} (type: {typeof activities[0]?._id})<br/>
-            </>
-          )}
-          {emissionFactors.length > 0 && (
-            <>
-              First emission factor ID: {emissionFactors[0]?._id} (type: {typeof emissionFactors[0]?._id})<br/>
-              First emission factor description: {emissionFactors[0]?.description}<br/>
-              First emission factor co2ePerUnit: {emissionFactors[0]?.co2ePerUnit} (type: {typeof emissionFactors[0]?.co2ePerUnit})<br/>
-            </>
-          )}
-          <br/>
-          <strong>Data Integrity:</strong><br/>
-          {(() => {
-            const analysis = analyzeDataIntegrity();
-            if (typeof analysis === 'string') {
-              return analysis;
-            }
-            return (
-              <>
-                Total Activities: {analysis.totalActivities}<br/>
-                Valid References: {analysis.validReferences}<br/>
-                Broken References: {analysis.brokenReferences}<br/>
-                {analysis.brokenReferences > 0 && (
-                  <>
-                    <strong>Broken Activities:</strong><br/>
-                    {analysis.brokenActivities.map((activity, index) => (
-                      <span key={index}>
-                        • {activity.name} (ID: {activity.id}) → EF ID: {activity.emissionFactorId}<br/>
-                      </span>
-                    ))}
-                  </>
-                )}
-              </>
-            );
-          })()}
-          <br/>
-          <button 
-            onClick={recalculateAllEmissions} 
-            className="btn btn-secondary"
-            style={{ fontSize: '10px', padding: '4px 8px', marginRight: '5px' }}
-          >
-            Recalculate All Emissions
-          </button>
-          <button 
-            onClick={refreshData} 
-            className="btn btn-secondary"
-            style={{ fontSize: '10px', padding: '4px 8px', marginRight: '5px' }}
-          >
-            Refresh Data
-          </button>
-          <button 
-            onClick={createTestData} 
-            className="btn btn-secondary"
-            style={{ fontSize: '10px', padding: '4px 8px', marginRight: '5px' }}
-          >
-            Create Test Data
-          </button>
-          <button 
-            onClick={repairBrokenReferences} 
-            className="btn btn-secondary"
-            style={{ fontSize: '10px', padding: '4px 8px' }}
-          >
-            Repair Broken References
-          </button>
-          <button 
-            onClick={async () => {
-              try {
-                console.log('Migrating existing activities to new emission factor data approach...');
-                
-                if (activities.length === 0) {
-                  toast.error('No activities to migrate');
-                  return;
-                }
-                
-                const updatedActivities = activities.map(activity => {
-                  // If already has emission factor data, skip
-                  if (activity.emissionFactorData) {
-                    return activity;
-                  }
-                  
-                  // Try to find emission factor by ID
-                  const factor = emissionFactors.find(f => String(f._id) === String(activity.emissionFactorId));
-                  
-                  if (factor) {
-                    console.log(`Migrating activity: ${activity.activityName}`);
-                    const emissionFactorData = {
-                      description: factor.description,
-                      co2ePerUnit: factor.co2ePerUnit,
-                      emissionFactorUnit: factor.emissionFactorUnit,
-                      unit: factor.unit
-                    };
-                    
-                    return {
-                      ...activity,
-                      emissionFactorData
-                    };
-                  }
-                  
-                  return activity;
-                });
-                
-                // Update activities in IndexedDB
-                for (const activity of updatedActivities) {
-                  if (activity.emissionFactorData) {
-                    try {
-                      await indexedDBService.updateReportingActivity(activity);
-                      console.log('Migrated activity:', activity._id);
-                    } catch (error) {
-                      console.error('Failed to migrate activity:', activity._id, error);
-                    }
-                  }
-                }
-                
-                // Refresh data
-                await refreshData();
-                toast.success('Migration completed successfully!');
-              } catch (error) {
-                console.error('Error during migration:', error);
-                toast.error('Migration failed');
-              }
-            }}
-            className="btn btn-secondary"
-            style={{ fontSize: '10px', padding: '4px 8px', marginLeft: '5px' }}
-          >
-            Migrate to New Format
-          </button>
-        </div>
-        
         {isLoadingData ? (
           <div className="loading-state">
             <p>Loading activities...</p>
@@ -1143,31 +976,33 @@ const Stage2: React.FC<Stage2Props> = ({ onNext }) => {
                           })()}
                         </td>
                         <td>
-                          <button
-                            onClick={() => handleEdit(activity)}
-                            className="btn btn-small btn-secondary"
-                            style={{ marginRight: '5px' }}
-                          >
-                            Edit
-                          </button>
-                          <button
-                            onClick={() => showAvailableEmissionFactors(activity)}
-                            className="btn btn-small btn-secondary"
-                            style={{ fontSize: '10px', padding: '2px 4px', marginRight: '5px' }}
-                            title="Show available emission factors"
-                          >
-                            Show EF
-                          </button>
-                          {!factorExists && (
+                          <div className="action-buttons">
                             <button
-                              onClick={() => createMissingEmissionFactor(activity)}
-                              className="btn btn-small btn-primary"
-                              style={{ fontSize: '10px', padding: '2px 4px' }}
-                              title="Create missing emission factor"
+                              onClick={() => handleEdit(activity)}
+                              className="btn btn-small btn-secondary"
+                              title="Edit activity"
                             >
-                              Create EF
+                              <FaEdit /> Edit
                             </button>
-                          )}
+                            <button
+                              onClick={() => handleDelete(activity)}
+                              className="btn btn-small btn-danger"
+                              title="Delete activity"
+                              disabled={isDeleting}
+                            >
+                              <FaTrash /> Delete
+                            </button>
+                            {!factorExists && (
+                              <button
+                                onClick={() => createMissingEmissionFactor(activity)}
+                                className="btn btn-small btn-primary"
+                                style={{ fontSize: '10px', padding: '2px 4px' }}
+                                title="Create missing emission factor"
+                              >
+                                Create EF
+                              </button>
+                            )}
+                          </div>
                         </td>
                       </tr>
                     );
@@ -1204,6 +1039,20 @@ const Stage2: React.FC<Stage2Props> = ({ onNext }) => {
         activity={editingActivity}
         onUpdate={handleUpdateActivity}
         emissionFactors={emissionFactors}
+      />
+
+      {/* Delete Confirmation Modal */}
+      <DeleteConfirmationModal
+        isOpen={showDeleteModal}
+        onClose={() => {
+          setShowDeleteModal(false);
+          setDeletingActivity(null);
+        }}
+        onConfirm={confirmDelete}
+        title="Delete Activity"
+        message={`Are you sure you want to delete "${deletingActivity?.activityName}"? This action cannot be undone.`}
+        confirmText="Delete"
+        cancelText="Cancel"
       />
     </div>
   );
