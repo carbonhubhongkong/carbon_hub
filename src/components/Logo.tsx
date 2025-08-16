@@ -4,8 +4,13 @@ const Logo: React.FC = () => {
   return (
     <div className="logo">
       <div className="logo-container">
-        <div className="logo-icon">🌱</div>
-        <h1 className="logo-text">Carbon Hub</h1>
+        <img 
+          src="/carbon-hub-logo.png" 
+          alt="Carbon Hub Logo" 
+          width={75} 
+          height={75}
+          className="logo-image"
+        />
       </div>
     </div>
   );

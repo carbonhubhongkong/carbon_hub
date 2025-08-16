@@ -498,7 +498,12 @@ const Stage2: React.FC<Stage2Props> = ({ onNext }) => {
     }
   };
 
-  const getEmissionFactorDescription = (id?: string) => {
+  const getEmissionFactorDescription = (id?: string, activity?: ReportingActivity) => {
+    // First check if the activity has emission factor data stored directly
+    if (activity?.emissionFactorData) {
+      return `${activity.emissionFactorData.description} (${activity.emissionFactorData.co2ePerUnit} ${activity.emissionFactorData.emissionFactorUnit})`;
+    }
+    
     if (!id) {
       return 'No emission factor selected';
     }
@@ -922,6 +927,7 @@ const Stage2: React.FC<Stage2Props> = ({ onNext }) => {
                     <th>Quantity</th>
                     <th>Emission Factor</th>
                     <th>Calculated Emissions</th>
+                    <th>Remarks</th>
                     <th>Actions</th>
                   </tr>
                 </thead>
@@ -952,7 +958,7 @@ const Stage2: React.FC<Stage2Props> = ({ onNext }) => {
                             
                             // Fallback to looking up by ID
                             if (factorExists) {
-                              return getEmissionFactorDescription(activity.emissionFactorId);
+                              return getEmissionFactorDescription(activity.emissionFactorId, activity);
                             }
                             
                             return (
@@ -974,6 +980,9 @@ const Stage2: React.FC<Stage2Props> = ({ onNext }) => {
                             }
                             return 'N/A';
                           })()}
+                        </td>
+                        <td>
+                          {activity.remarks || '-'}
                         </td>
                         <td>
                           <div className="action-buttons">
