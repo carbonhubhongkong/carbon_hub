@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { toast } from 'react-hot-toast';
+import { useTranslations } from 'next-intl';
 import type { ChartConfig, ChartType, AggregationType, DataField, ChartValidationError, ChartSuggestion } from '../types/analytics';
 
 interface ChartBuilderProps {
@@ -11,6 +12,7 @@ interface ChartBuilderProps {
 }
 
 const ChartBuilder: React.FC<ChartBuilderProps> = ({ chartConfig, onSave, onCancel }) => {
+  const t = useTranslations();
   const [config, setConfig] = useState<ChartConfig>({
     id: '',
     title: '',
@@ -28,31 +30,31 @@ const ChartBuilder: React.FC<ChartBuilderProps> = ({ chartConfig, onSave, onCanc
 
   // Define data fields and options first
   const dataFields: DataField[] = useMemo(() => [
-    { key: 'activityName', label: 'Activity Name', type: 'string', chartCompatible: true, description: 'Name of the activity' },
-    { key: 'reportingPeriodStart', label: 'Period Start Date', type: 'date', chartCompatible: true, description: 'Start date of reporting period' },
-    { key: 'reportingPeriodEnd', label: 'Period End Date', type: 'date', chartCompatible: true, description: 'End date of reporting period' },
-    { key: 'scope', label: 'Scope', type: 'string', chartCompatible: true, description: 'GHG scope classification' },
-    { key: 'category', label: 'Category', type: 'string', chartCompatible: true, description: 'Activity category' },
-    { key: 'location', label: 'Country/Region/Location', type: 'string', chartCompatible: true, description: 'Geographic location' },
-    { key: 'quantity', label: 'Quantity', type: 'number', chartCompatible: true, description: 'Activity quantity' },
-    { key: 'emissionFactorId', label: 'Emission Factor', type: 'string', chartCompatible: true, description: 'Emission factor identifier' },
-    { key: 'calculatedEmissions', label: 'Calculated Emissions', type: 'number', chartCompatible: true, description: 'Calculated CO2e emissions' }
-  ], []);
+    { key: 'activityName', label: t('stage2.formLabels.activityName'), type: 'string', chartCompatible: true, description: t('stage3.chartBuilder.fieldDescriptions.activityName') },
+    { key: 'reportingPeriodStart', label: t('stage2.formLabels.reportingPeriodStart'), type: 'date', chartCompatible: true, description: t('stage3.chartBuilder.fieldDescriptions.reportingPeriodStart') },
+    { key: 'reportingPeriodEnd', label: t('stage2.formLabels.reportingPeriodEnd'), type: 'date', chartCompatible: true, description: t('stage3.chartBuilder.fieldDescriptions.reportingPeriodEnd') },
+    { key: 'scope', label: t('stage2.formLabels.scope'), type: 'string', chartCompatible: true, description: t('stage3.chartBuilder.fieldDescriptions.scope') },
+    { key: 'category', label: t('stage2.formLabels.category'), type: 'string', chartCompatible: true, description: t('stage3.chartBuilder.fieldDescriptions.category') },
+    { key: 'location', label: t('stage2.formLabels.location'), type: 'string', chartCompatible: true, description: t('stage3.chartBuilder.fieldDescriptions.location') },
+    { key: 'quantity', label: t('stage2.formLabels.quantity'), type: 'number', chartCompatible: true, description: t('stage3.chartBuilder.fieldDescriptions.quantity') },
+    { key: 'emissionFactorId', label: t('stage2.formLabels.emissionFactorId'), type: 'string', chartCompatible: true, description: t('stage3.chartBuilder.fieldDescriptions.emissionFactorId') },
+    { key: 'calculatedEmissions', label: t('stage2.formLabels.calculatedEmissions'), type: 'number', chartCompatible: true, description: t('stage3.chartBuilder.fieldDescriptions.calculatedEmissions') }
+  ], [t]);
 
   const chartTypes: { value: ChartType; label: string; description: string }[] = useMemo(() => [
-    { value: 'bar', label: 'Bar Chart', description: 'Best for comparing categories or showing trends over time' },
-    { value: 'line', label: 'Line Chart', description: 'Ideal for showing trends and changes over time' },
-    { value: 'pie', label: 'Pie Chart', description: 'Great for showing parts of a whole' },
-    { value: 'donut', label: 'Donut Chart', description: 'Similar to pie chart but with center space' }
-  ], []);
+    { value: 'bar', label: t('stage3.chartBuilder.chartTypes.bar'), description: t('stage3.chartBuilder.chartTypeDescriptions.bar') },
+    { value: 'line', label: t('stage3.chartBuilder.chartTypes.line'), description: t('stage3.chartBuilder.chartTypeDescriptions.line') },
+    { value: 'pie', label: t('stage3.chartBuilder.chartTypes.pie'), description: t('stage3.chartBuilder.chartTypeDescriptions.pie') },
+    { value: 'donut', label: t('stage3.chartBuilder.chartTypes.donut'), description: t('stage3.chartBuilder.chartTypeDescriptions.donut') }
+  ], [t]);
 
   const aggregationTypes: { value: AggregationType; label: string; description: string }[] = useMemo(() => [
-    { value: 'sum', label: 'Sum', description: 'Add up all values' },
-    { value: 'average', label: 'Average', description: 'Calculate mean value' },
-    { value: 'count', label: 'Count', description: 'Count number of records' },
-    { value: 'min', label: 'Minimum', description: 'Find lowest value' },
-    { value: 'max', label: 'Maximum', description: 'Find highest value' }
-  ], []);
+    { value: 'sum', label: t('stage3.chartBuilder.aggregationTypes.sum'), description: t('stage3.chartBuilder.aggregationTypeDescriptions.sum') },
+    { value: 'average', label: t('stage3.chartBuilder.aggregationTypes.average'), description: t('stage3.chartBuilder.aggregationTypeDescriptions.average') },
+    { value: 'count', label: t('stage3.chartBuilder.aggregationTypes.count'), description: t('stage3.chartBuilder.aggregationTypeDescriptions.count') },
+    { value: 'min', label: t('stage3.chartBuilder.aggregationTypes.min'), description: t('stage3.chartBuilder.aggregationTypeDescriptions.min') },
+    { value: 'max', label: t('stage3.chartBuilder.aggregationTypes.max'), description: t('stage3.chartBuilder.aggregationTypeDescriptions.max') }
+  ], [t]);
 
   const colorPalettes = useMemo(() => [
     ['#2E7D32', '#4CAF50', '#8BC34A', '#CDDC39'],
@@ -66,19 +68,19 @@ const ChartBuilder: React.FC<ChartBuilderProps> = ({ chartConfig, onSave, onCanc
     const newErrors: ChartValidationError[] = [];
 
     if (!config.title.trim()) {
-      newErrors.push({ field: 'title', message: 'Chart title is required', severity: 'error' });
+      newErrors.push({ field: 'title', message: t('stage3.chartBuilder.validation.chartTitleRequired'), severity: 'error' });
     }
 
     if (!config.xAxis) {
-      newErrors.push({ field: 'xAxis', message: 'X-axis field is required', severity: 'error' });
+      newErrors.push({ field: 'xAxis', message: t('stage3.chartBuilder.validation.xAxisRequired'), severity: 'error' });
     }
 
     if (!config.yAxis) {
-      newErrors.push({ field: 'yAxis', message: 'Y-axis field is required', severity: 'error' });
+      newErrors.push({ field: 'yAxis', message: t('stage3.chartBuilder.validation.yAxisRequired'), severity: 'error' });
     }
 
     if (config.xAxis === config.yAxis) {
-      newErrors.push({ field: 'yAxis', message: 'X and Y axes must be different', severity: 'error' });
+      newErrors.push({ field: 'yAxis', message: t('stage3.chartBuilder.validation.axesMustBeDifferent'), severity: 'error' });
     }
 
     // Validate chart type compatibility
@@ -89,7 +91,7 @@ const ChartBuilder: React.FC<ChartBuilderProps> = ({ chartConfig, onSave, onCanc
       if (xField?.type === 'number' || yField?.type === 'date') {
         newErrors.push({ 
           field: 'chartType', 
-          message: 'Pie/Donut charts work best with categorical data', 
+          message: t('stage3.chartBuilder.validation.pieDonutCategoricalWarning'), 
           severity: 'warning' 
         });
       }
@@ -99,7 +101,7 @@ const ChartBuilder: React.FC<ChartBuilderProps> = ({ chartConfig, onSave, onCanc
       if (xField?.type !== 'date' && xField?.type !== 'string') {
         newErrors.push({ 
           field: 'xAxis', 
-          message: 'Line charts work best with date or sequential data', 
+          message: t('stage3.chartBuilder.validation.lineChartWarning'), 
           severity: 'warning' 
         });
       }
@@ -114,39 +116,39 @@ const ChartBuilder: React.FC<ChartBuilderProps> = ({ chartConfig, onSave, onCanc
     // Suggestion 1: Emissions by Scope
     if (config.xAxis !== 'scope' || config.yAxis !== 'calculatedEmissions') {
       newSuggestions.push({
-        title: 'Emissions by Scope',
-        description: 'Compare emissions across different GHG scopes',
+        title: t('stage3.chartBuilder.suggestions.emissionsByScope.title'),
+        description: t('stage3.chartBuilder.suggestions.emissionsByScope.description'),
         chartType: 'bar',
         xAxis: 'scope',
         yAxis: 'calculatedEmissions',
         aggregation: 'sum',
-        reason: 'Scope is a categorical field perfect for bar charts'
+        reason: t('stage3.chartBuilder.suggestions.emissionsByScope.reason')
       });
     }
 
     // Suggestion 2: Emissions by Category
     if (config.xAxis !== 'category' || config.yAxis !== 'calculatedEmissions') {
       newSuggestions.push({
-        title: 'Emissions by Category',
-        description: 'Show emissions distribution across activity categories',
+        title: t('stage3.chartBuilder.suggestions.emissionsByCategory.title'),
+        description: t('stage3.chartBuilder.suggestions.emissionsByCategory.description'),
         chartType: 'pie',
         xAxis: 'category',
         yAxis: 'calculatedEmissions',
         aggregation: 'sum',
-        reason: 'Category breakdown works well with pie charts'
+        reason: t('stage3.chartBuilder.suggestions.emissionsByCategory.reason')
       });
     }
 
     // Suggestion 3: Emissions Over Time
     if (config.xAxis !== 'reportingPeriodStart' || config.yAxis !== 'calculatedEmissions') {
       newSuggestions.push({
-        title: 'Emissions Over Time',
-        description: 'Track emissions trends across reporting periods',
+        title: t('stage3.chartBuilder.suggestions.emissionsOverTime.title'),
+        description: t('stage3.chartBuilder.suggestions.emissionsOverTime.description'),
         chartType: 'line',
         xAxis: 'reportingPeriodStart',
         yAxis: 'calculatedEmissions',
         aggregation: 'sum',
-        reason: 'Time series data is perfect for line charts'
+        reason: t('stage3.chartBuilder.suggestions.emissionsOverTime.reason')
       });
     }
 
@@ -187,12 +189,12 @@ const ChartBuilder: React.FC<ChartBuilderProps> = ({ chartConfig, onSave, onCanc
       xAxisLabel: dataFields.find(f => f.key === suggestion.xAxis)?.label || '',
       yAxisLabel: dataFields.find(f => f.key === suggestion.yAxis)?.label || ''
     });
-    toast.success('Suggestion applied!');
+    toast.success(t('stage3.chartBuilder.toast.suggestionApplied'));
   };
 
   const handleSave = () => {
     if (errors.some(e => e.severity === 'error')) {
-      toast.error('Please fix the errors before saving');
+      toast.error(t('stage3.chartBuilder.toast.fixErrorsBeforeSaving'));
       return;
     }
 
@@ -216,7 +218,7 @@ const ChartBuilder: React.FC<ChartBuilderProps> = ({ chartConfig, onSave, onCanc
       <div className="modal-content chart-builder-modal">
         <div className="modal-header">
           <h3 className="modal-title">
-            {chartConfig ? 'Edit Chart' : 'Create New Chart'}
+            {chartConfig ? t('stage3.chartBuilder.editChart') : t('stage3.chartBuilder.createNewChart')}
           </h3>
           <button onClick={onCancel} className="btn-close">×</button>
         </div>
@@ -225,14 +227,14 @@ const ChartBuilder: React.FC<ChartBuilderProps> = ({ chartConfig, onSave, onCanc
           <div className="chart-builder-form">
             {/* Chart Title */}
             <div className="form-group">
-              <label htmlFor="chartTitle">Chart Title *</label>
+              <label htmlFor="chartTitle">{t('stage3.chartBuilder.formLabels.chartTitle')} *</label>
               <input
                 id="chartTitle"
                 type="text"
                 className={`form-input ${errors.find(e => e.field === 'title') ? 'form-input-error' : ''}`}
                 value={config.title}
                 onChange={(e) => setConfig({ ...config, title: e.target.value })}
-                placeholder="Enter chart title"
+                                  placeholder={t('stage3.chartBuilder.placeholders.enterChartTitle')}
               />
               {errors.find(e => e.field === 'title') && (
                 <div className="form-error-message">
@@ -243,7 +245,7 @@ const ChartBuilder: React.FC<ChartBuilderProps> = ({ chartConfig, onSave, onCanc
 
             {/* Chart Type */}
             <div className="form-group">
-              <label htmlFor="chartType">Chart Type *</label>
+              <label htmlFor="chartType">{t('stage3.chartBuilder.formLabels.chartType')} *</label>
               <div className="chart-type-options">
                 {chartTypes.map(type => (
                   <label key={type.value} className="chart-type-option">
@@ -266,14 +268,14 @@ const ChartBuilder: React.FC<ChartBuilderProps> = ({ chartConfig, onSave, onCanc
             {/* X and Y Axis Selection */}
             <div className="form-row">
               <div className="form-group">
-                <label htmlFor="xAxis">X-Axis Field *</label>
+                <label htmlFor="xAxis">{t('stage3.chartBuilder.formLabels.xAxisField')} *</label>
                 <select
                   id="xAxis"
                   className={`form-input ${errors.find(e => e.field === 'xAxis') ? 'form-input-error' : ''}`}
                   value={config.xAxis}
                   onChange={(e) => setConfig({ ...config, xAxis: e.target.value })}
                 >
-                  <option value="">Select X-axis field</option>
+                  <option value="">{t('stage3.chartBuilder.placeholders.selectXAxisField')}</option>
                   {dataFields.map(field => (
                     <option key={field.key} value={field.key}>
                       {field.label} ({field.type})
@@ -288,14 +290,14 @@ const ChartBuilder: React.FC<ChartBuilderProps> = ({ chartConfig, onSave, onCanc
               </div>
 
               <div className="form-group">
-                <label htmlFor="yAxis">Y-Axis Field *</label>
+                <label htmlFor="yAxis">{t('stage3.chartBuilder.formLabels.yAxisField')} *</label>
                 <select
                   id="yAxis"
                   className={`form-input ${errors.find(e => e.field === 'yAxis') ? 'form-input-error' : ''}`}
                   value={config.yAxis}
                   onChange={(e) => setConfig({ ...config, yAxis: e.target.value })}
                 >
-                  <option value="">Select Y-axis field</option>
+                  <option value="">{t('stage3.chartBuilder.placeholders.selectYAxisField')}</option>
                   {dataFields.map(field => (
                     <option key={field.key} value={field.key}>
                       {field.label} ({field.type})
@@ -312,7 +314,7 @@ const ChartBuilder: React.FC<ChartBuilderProps> = ({ chartConfig, onSave, onCanc
 
             {/* Aggregation */}
             <div className="form-group">
-              <label htmlFor="aggregation">Aggregation Method *</label>
+              <label htmlFor="aggregation">{t('stage3.chartBuilder.formLabels.aggregationMethod')} *</label>
               <select
                 id="aggregation"
                 className="form-input"
@@ -330,33 +332,33 @@ const ChartBuilder: React.FC<ChartBuilderProps> = ({ chartConfig, onSave, onCanc
             {/* Axis Labels */}
             <div className="form-row">
               <div className="form-group">
-                <label htmlFor="xAxisLabel">X-Axis Label</label>
+                <label htmlFor="xAxisLabel">{t('stage3.chartBuilder.formLabels.xAxisLabel')}</label>
                 <input
                   id="xAxisLabel"
                   type="text"
                   className="form-input"
                   value={config.xAxisLabel}
                   onChange={(e) => setConfig({ ...config, xAxisLabel: e.target.value })}
-                  placeholder="Leave empty to use field name"
+                  placeholder={t('stage3.chartBuilder.placeholders.leaveEmptyForFieldName')}
                 />
               </div>
 
               <div className="form-group">
-                <label htmlFor="yAxisLabel">Y-Axis Label</label>
+                <label htmlFor="yAxisLabel">{t('stage3.chartBuilder.formLabels.yAxisLabel')}</label>
                 <input
                   id="yAxisLabel"
                   type="text"
                   className="form-input"
                   value={config.yAxisLabel}
                   onChange={(e) => setConfig({ ...config, yAxisLabel: e.target.value })}
-                  placeholder="Leave empty to use field name"
+                  placeholder={t('stage3.chartBuilder.placeholders.leaveEmptyForFieldName')}
                 />
               </div>
             </div>
 
             {/* Color Palette */}
             <div className="form-group">
-              <label>Color Palette</label>
+              <label>{t('stage3.chartBuilder.formLabels.colorPalette')}</label>
               <div className="color-palette-options">
                 {colorPalettes.map((palette, index) => (
                   <label key={index} className="color-palette-option">
@@ -383,7 +385,7 @@ const ChartBuilder: React.FC<ChartBuilderProps> = ({ chartConfig, onSave, onCanc
             {/* Chart Suggestions */}
             {suggestions.length > 0 && (
               <div className="form-group">
-                <label>Chart Suggestions</label>
+                <label>{t('stage3.chartBuilder.formLabels.chartSuggestions')}</label>
                 <div className="chart-suggestions">
                   {suggestions.map((suggestion, index) => (
                     <div key={index} className="chart-suggestion">
@@ -396,7 +398,7 @@ const ChartBuilder: React.FC<ChartBuilderProps> = ({ chartConfig, onSave, onCanc
                         onClick={() => applySuggestion(suggestion)}
                         className="btn btn-secondary btn-small"
                       >
-                        Apply
+                        {t('stage3.chartBuilder.apply')}
                       </button>
                     </div>
                   ))}
@@ -407,7 +409,7 @@ const ChartBuilder: React.FC<ChartBuilderProps> = ({ chartConfig, onSave, onCanc
             {/* Warnings */}
             {errors.some(e => e.severity === 'warning') && (
               <div className="form-warnings">
-                <h4>Warnings</h4>
+                <h4>{t('stage3.chartBuilder.warnings')}</h4>
                 {errors.filter(e => e.severity === 'warning').map((error, index) => (
                   <div key={index} className="warning-message">
                     ⚠️ {error.message}
@@ -420,14 +422,14 @@ const ChartBuilder: React.FC<ChartBuilderProps> = ({ chartConfig, onSave, onCanc
 
         <div className="modal-actions">
           <button onClick={onCancel} className="btn btn-secondary">
-            Cancel
+            {t('common.cancel')}
           </button>
           <button
             onClick={handleSave}
             className="btn btn-primary"
             disabled={!isFormValid()}
           >
-            {chartConfig ? 'Update Chart' : 'Create Chart'}
+            {chartConfig ? t('stage3.chartBuilder.updateChart') : t('stage3.chartBuilder.createChart')}
           </button>
         </div>
       </div>

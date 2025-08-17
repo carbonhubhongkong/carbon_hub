@@ -25,6 +25,10 @@
     "bulkDelete": "批量删除",
     "selectAll": "全选",
     "deselectAll": "取消全选",
+    "deleting": "删除中...",
+    "deleteSelected": "删除选定 ({count})",
+    "editEmissionFactor": "编辑排放因子",
+    "deleteEmissionFactor": "删除排放因子",
     "yes": "是",
     "no": "否",
     "ok": "确定",
@@ -50,6 +54,8 @@
     "pause": "暂停",
     "resume": "恢复",
     "note": "注意",
+    "example": "示例",
+    "loading": "加载中...",
     "unknownError": "未知错误"
   },
   "navigation": {
@@ -95,6 +101,7 @@
     "validatingData": "验证数据中...",
     "importProgress": "导入中 {current}/{total}...",
     "failedToDeleteSelectedRows": "删除选定行失败",
+    "rowHasErrors": "行有错误",
     "columnHeaders": {
       "description": "描述",
       "scope": "范围",
@@ -300,16 +307,28 @@
       "required": "此字段为必填",
       "invalidNumber": "此字段为必填且必须是有效数字",
       "enumError": "必须是以下其中之一：{options}",
-      "fieldRequired": "{fieldName} 为必填"
+      "fieldRequired": "{fieldName} 为必填",
+      "minValue": "{fieldName} 必须至少为 {min}",
+      "maxValue": "{fieldName} 必须最多为 {max}",
+      "invalidFormat": "{fieldName} 格式无效"
     },
     "savedEmissionFactorsTitle": "已保存的排放因子",
     "noEmissionFactorsMessage": "尚未添加任何排放因子。请在上方添加您的第一个排放因子或从 CSV 导入。",
     "nextButton": "下一步：报告活动数据",
     "saving": "保存中...",
     "update": "更新",
+    "updating": "更新中...",
+    "selectScope": "选择范围",
+    "selectCategory": "选择类别",
+    "selectLocation": "选择位置",
+    "selectEmissionFactor": "选择排放因子",
+    "generalInfoTitle": "基本信息",
+    "calculationMethodsTitle": "计算方法",
+    "emissionFactorReferenceTitle": "排放因子与参考",
     "add": "添加",
     "cancel": "取消",
     "delete": "删除",
+    "editEmissionFactorTitle": "编辑排放因子",
     "deleteEmissionFactorTitle": "删除排放因子",
     "deleteEmissionFactorMessage": "您确定要删除此排放因子吗？此操作无法恢复。",
     "bulkDeleteEmissionFactorsTitle": "批量删除排放因子",
@@ -359,7 +378,9 @@
       "location": "国家/地区/位置",
       "quantity": "数量",
       "emissionFactorId": "排放因子",
-      "remarks": "备注"
+      "remarks": "备注",
+      "reportingPeriod": "期间",
+      "calculatedEmissions": "计算排放量"
     },
     "placeholders": {
       "reportingPeriodStart": "选择开始日期",
@@ -376,7 +397,17 @@
       "required": "此字段为必填",
       "invalidNumber": "此字段必须是有效数字",
       "dateRange": "结束日期必须在开始日期之后",
-      "selectScopeLocationCategory": "请先选择范围、位置和类别以查看可用的排放因子"
+      "selectScopeLocationCategory": "请先选择范围、位置和类别以查看可用的排放因子",
+      "startDateRequired": "开始日期为必填",
+      "endDateRequired": "结束日期为必填",
+      "endDateAfterStart": "结束日期必须在开始日期之后",
+      "scopeRequired": "范围为必填",
+      "categoryRequired": "类别为必填",
+      "activityNameRequired": "活动名称为必填",
+      "locationRequired": "位置为必填",
+      "quantityPositive": "数量必须是正数",
+      "emissionFactorRequired": "排放因子为必填",
+      "emissionFactorNotFound": "选择的排放因子未找到。请选择有效的排放因子。"
     },
     "savedActivities": "已保存的活动",
     "noActivitiesMessage": "尚未添加任何活动。请在上方添加您的第一个活动。",
@@ -394,12 +425,43 @@
     "defaultUnit": "kg CO2e",
     "dateRangeSeparator": "至",
     "toast": {
-      "loadDataFailed": "加载数据失败"
+      "loadDataFailed": "加载数据失败",
+      "updateFailed": "更新活动失败",
+      "updatedSuccessfully": "活动更新成功！",
+      "savedSuccessfully": "活动保存成功！",
+      "deletedSuccessfully": "活动删除成功！",
+      "testDataCreatedSuccessfully": "测试数据创建成功！",
+      "brokenReferencesRepairedSuccessfully": "损坏的引用修复成功！",
+      "foundEmissionFactors": "找到 {count} 个排放因子：\n{factorList}",
+      "createdMissingEmissionFactorSuccessfully": "创建了缺失的排放因子并链接到活动！",
+      "emissionsRecalculatedSuccessfully": "排放量重新计算成功！",
+      "saveFailed": "保存活动失败",
+      "deleteFailed": "删除活动失败",
+      "createTestDataFailed": "创建测试数据失败",
+      "noActivitiesToRepair": "没有活动需要修复",
+      "noEmissionFactorsForRepair": "没有可用的排放因子进行修复",
+      "repairBrokenReferencesFailed": "修复损坏的引用失败",
+      "noEmissionFactorsFound": "未找到范围：{scope}、类别：{category}、位置：{location} 的排放因子",
+      "createMissingEmissionFactorFailed": "创建缺失的排放因子失败",
+      "noEmissionFactorsForCalculation": "没有可用的排放因子进行计算",
+      "noActivitiesToRecalculate": "没有活动需要重新计算",
+      "recalculateEmissionsFailed": "重新计算排放量失败",
+      "refreshDataFailed": "刷新数据失败"
     },
     "connectionStatus": {
       "connected": "已连接到数据库",
       "fallback": "使用备用数据",
       "error": "数据库连接错误"
+    },
+    "updating": "更新中...",
+    "update": "更新",
+    "editActivity": {
+      "title": "编辑报告活动",
+      "activityInformation": "活动信息",
+      "additionalInformation": "附加信息",
+      "selectScopeLocationCategory": "请先选择范围、位置和类别以查看可用的排放因子",
+      "selected": "已选择",
+      "emissionFactorNotFound": "未找到排放因子"
     }
   },
   "stage3": {
@@ -430,7 +492,144 @@
       "scopeBreakdown": "范围分类",
       "categoryBreakdown": "类别分类",
       "locationBreakdown": "位置分类"
-    }
+    },
+    "createNewChart": "创建新图表",
+    "resetToDefaults": "重置为默认值",
+    "detailedDataExport": "详细数据导出",
+    "exportFilteredData": "导出筛选数据",
+    "noActivitiesFound": "未找到活动。请在第二阶段添加一些活动。",
+    "chartCopySuffix": "(副本)",
+    "defaultCharts": {
+      "emissionsByScope": "按范围分类的排放量",
+      "emissionsYAxisLabel": "排放量 (kg CO2e)"
+    },
+    "toast": {
+      "saveChartConfigurationFailed": "保存图表配置失败",
+      "fetchReportDataFailed": "获取报告数据失败",
+      "chartAddedSuccessfully": "图表添加成功！",
+      "chartUpdatedSuccessfully": "图表更新成功！",
+      "chartDeletedSuccessfully": "图表删除成功！",
+      "chartDuplicatedSuccessfully": "图表复制成功！",
+      "resetToDefaultCharts": "重置为默认图表",
+      "csvExportedSuccessfully": "CSV导出成功！"
+    },
+    "chartBuilder": {
+      "editChart": "编辑图表",
+      "createNewChart": "创建新图表",
+      "formLabels": {
+        "chartTitle": "图表标题",
+        "chartType": "图表类型",
+        "xAxisField": "X轴字段",
+        "yAxisField": "Y轴字段",
+        "aggregationMethod": "聚合方法",
+        "xAxisLabel": "X轴标签",
+        "yAxisLabel": "Y轴标签",
+        "colorPalette": "调色板",
+        "chartSuggestions": "图表建议"
+      },
+      "placeholders": {
+        "enterChartTitle": "输入图表标题",
+        "selectXAxisField": "选择X轴字段",
+        "selectYAxisField": "选择Y轴字段",
+        "leaveEmptyForFieldName": "留空以使用字段名称"
+      },
+      "chartTypes": {
+        "bar": "柱状图",
+        "line": "折线图",
+        "pie": "饼图",
+        "donut": "环形图"
+      },
+      "chartTypeDescriptions": {
+        "bar": "最适合比较类别或显示时间趋势",
+        "line": "最适合显示趋势和随时间的变化",
+        "pie": "最适合显示整体的各个部分",
+        "donut": "与饼图类似，但中心有空间"
+      },
+      "aggregationTypes": {
+        "sum": "求和",
+        "average": "平均值",
+        "count": "计数",
+        "min": "最小值",
+        "max": "最大值"
+      },
+      "aggregationTypeDescriptions": {
+        "sum": "将所有值相加",
+        "average": "计算平均值",
+        "count": "计算记录数量",
+        "min": "找到最低值",
+        "max": "找到最高值"
+      },
+      "fieldDescriptions": {
+        "activityName": "活动名称",
+        "reportingPeriodStart": "报告期间开始日期",
+        "reportingPeriodEnd": "报告期间结束日期",
+        "scope": "温室气体范围分类",
+        "category": "活动类别",
+        "location": "地理位置",
+        "quantity": "活动数量",
+        "emissionFactorId": "排放因子标识符",
+        "calculatedEmissions": "计算的CO2e排放量"
+      },
+      "validation": {
+        "chartTitleRequired": "图表标题为必填项",
+        "xAxisRequired": "X轴字段为必填项",
+        "yAxisRequired": "Y轴字段为必填项",
+        "axesMustBeDifferent": "X轴和Y轴必须不同",
+        "pieDonutCategoricalWarning": "饼图/环形图最适合分类数据",
+        "lineChartWarning": "折线图最适合X轴上的日期或顺序数据"
+      },
+      "suggestions": {
+        "emissionsByScope": {
+          "title": "按范围分类的排放量",
+          "description": "比较不同温室气体范围的排放量",
+          "reason": "范围是适合柱状图的分类字段"
+        },
+        "emissionsByCategory": {
+          "title": "按类别分类的排放量",
+          "description": "显示跨活动类别的排放量分布",
+          "reason": "类别细分适合饼图"
+        },
+        "emissionsOverTime": {
+          "title": "随时间变化的排放量",
+          "description": "跟踪报告期间的排放量趋势",
+          "reason": "时间序列数据最适合折线图"
+        }
+      },
+      "warnings": "警告",
+      "apply": "应用",
+      "updateChart": "更新图表",
+      "createChart": "创建图表",
+      "toast": {
+        "suggestionApplied": "建议已应用！",
+        "fixErrorsBeforeSaving": "保存前请修复错误"
+      }
+    },
+          "chartGrid": {
+        "analyticsCharts": "分析图表",
+        "noChartsCreatedYet": "尚未创建图表。点击\"创建图表\"开始使用。",
+        "chartCountDescription": "{count} 个图表 • 拖拽重新排序 • 点击图表操作进行管理",
+        "toggleFilters": "切换筛选器",
+        "downloadAsPNG": "下载为PNG",
+        "editChart": "编辑图表",
+        "duplicateChart": "复制图表",
+        "deleteChart": "删除图表",
+        "tip": "提示",
+        "dragChartsToReorder": "拖拽图表以重新排序。顺序将自动保存。",
+        "operators": {
+          "contains": "包含",
+          "equals": "等于",
+          "startsWith": "开始于",
+          "endsWith": "结束于"
+        },
+        "filters": {
+          "chartFilters": "图表筛选器",
+          "filterDataForThisChartOnly": "仅筛选此图表的数据",
+          "selectField": "选择字段",
+          "enterValue": "输入值",
+          "addFilter": "添加筛选器",
+          "removeFilter": "移除筛选器"
+        }
+      }
   },
   "languageSelector": {
     "selectLanguage": "选择语言",

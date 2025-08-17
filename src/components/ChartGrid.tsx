@@ -3,6 +3,7 @@
 import React, { useState, useCallback, useRef } from 'react';
 import { Chart as ChartJS, CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend, ArcElement, PointElement, LineElement, LineController } from 'chart.js';
 import { Bar, Line, Pie, Doughnut } from 'react-chartjs-2';
+import { useTranslations } from 'next-intl';
 import type { ChartConfig, ChartData, FilterConfig } from '../types/analytics';
 import type { ReportingActivity } from '@/lib/indexedDB';
 
@@ -26,6 +27,7 @@ const ChartGrid: React.FC<ChartGridProps> = ({
   onDeleteChart,
   onDuplicateChart
 }) => {
+  const t = useTranslations();
   const [draggedChartId, setDraggedChartId] = useState<string | null>(null);
   const [chartOrder, setChartOrder] = useState<string[]>(charts.map(c => c.id));
   const [chartFilters, setChartFilters] = useState<Record<string, FilterConfig[]>>({});
@@ -259,10 +261,10 @@ const ChartGrid: React.FC<ChartGridProps> = ({
     return (
       <div className="chart-grid">
         <div className="chart-grid-header">
-          <h3 className="section-title">Analytics Charts</h3>
-          <p className="section-description">
-            No charts created yet. Click &quot;Create Chart&quot; to get started.
-          </p>
+                   <h3 className="section-title">{t('stage3.chartGrid.analyticsCharts')}</h3>
+         <p className="section-description">
+           {t('stage3.chartGrid.noChartsCreatedYet')}
+         </p>
         </div>
       </div>
     );
@@ -271,10 +273,10 @@ const ChartGrid: React.FC<ChartGridProps> = ({
   return (
     <div className="chart-grid">
       <div className="chart-grid-header">
-        <h3 className="section-title">Analytics Charts</h3>
-        <p className="section-description">
-          {charts.length} chart{charts.length !== 1 ? 's' : ''} • Drag to reorder • Click chart actions to manage
-        </p>
+                 <h3 className="section-title">{t('stage3.chartGrid.analyticsCharts')}</h3>
+         <p className="section-description">
+           {t('stage3.chartGrid.chartCountDescription', { count: charts.length })}
+         </p>
       </div>
 
       <div className="chart-grid-container">
@@ -314,35 +316,35 @@ const ChartGrid: React.FC<ChartGridProps> = ({
                   <button
                     onClick={() => toggleFiltersForChart(chart.id)}
                     className="btn btn-small btn-secondary"
-                    title="Toggle filters"
+                    title={t('stage3.chartGrid.toggleFilters')}
                   >
                     🔍 {chartFilters[chart.id]?.length || 0}
                   </button>
                   <button
                     onClick={() => downloadChartAsPNG(chart.id)}
                     className="btn btn-small btn-secondary"
-                    title="Download as PNG"
+                    title={t('stage3.chartGrid.downloadAsPNG')}
                   >
                     📥
                   </button>
                   <button
                     onClick={() => onEditChart(chart)}
                     className="btn btn-small btn-primary"
-                    title="Edit chart"
+                    title={t('stage3.chartGrid.editChart')}
                   >
                     ✏️
                   </button>
                   <button
                     onClick={() => onDuplicateChart(chart)}
                     className="btn btn-small btn-secondary"
-                    title="Duplicate chart"
+                    title={t('stage3.chartGrid.duplicateChart')}
                   >
                     📋
                   </button>
                   <button
                     onClick={() => onDeleteChart(chart.id)}
                     className="btn btn-small btn-danger"
-                    title="Delete chart"
+                    title={t('stage3.chartGrid.deleteChart')}
                   >
                     🗑️
                   </button>
@@ -372,7 +374,7 @@ const ChartGrid: React.FC<ChartGridProps> = ({
       {charts.length > 1 && (
         <div className="chart-grid-help">
           <p>
-            💡 <strong>Tip:</strong> Drag charts to reorder them. The order will be saved automatically.
+            💡 <strong>{t('stage3.chartGrid.tip')}:</strong> {t('stage3.chartGrid.dragChartsToReorder')}
           </p>
         </div>
       )}
@@ -396,6 +398,7 @@ const ChartFilters: React.FC<ChartFiltersProps> = ({
   onAddFilter,
   onRemoveFilter
 }) => {
+  const t = useTranslations();
   const [newFilter, setNewFilter] = useState<Partial<FilterConfig>>({
     field: '',
     operator: 'contains',
@@ -403,22 +406,22 @@ const ChartFilters: React.FC<ChartFiltersProps> = ({
   });
 
   const dataFields = [
-    { key: 'activityName', label: 'Activity Name' },
-    { key: 'reportingPeriodStart', label: 'Period Start Date' },
-    { key: 'reportingPeriodEnd', label: 'Period End Date' },
-    { key: 'scope', label: 'Scope' },
-    { key: 'category', label: 'Category' },
-    { key: 'location', label: 'Location' },
-    { key: 'quantity', label: 'Quantity' },
-    { key: 'emissionFactorId', label: 'Emission Factor' },
-    { key: 'calculatedEmissions', label: 'Calculated Emissions' }
+    { key: 'activityName', label: t('stage2.formLabels.activityName') },
+    { key: 'reportingPeriodStart', label: t('stage2.formLabels.reportingPeriodStart') },
+    { key: 'reportingPeriodEnd', label: t('stage2.formLabels.reportingPeriodEnd') },
+    { key: 'scope', label: t('stage2.formLabels.scope') },
+    { key: 'category', label: t('stage2.formLabels.category') },
+    { key: 'location', label: t('stage2.formLabels.location') },
+    { key: 'quantity', label: t('stage2.formLabels.quantity') },
+    { key: 'emissionFactorId', label: t('stage2.formLabels.emissionFactorId') },
+    { key: 'calculatedEmissions', label: t('stage2.formLabels.calculatedEmissions') }
   ];
 
   const operators = [
-    { value: 'contains', label: 'Contains' },
-    { value: 'equals', label: 'Equals' },
-    { value: 'startsWith', label: 'Starts with' },
-    { value: 'endsWith', label: 'Ends with' }
+    { value: 'contains', label: t('stage3.chartGrid.operators.contains') },
+    { value: 'equals', label: t('stage3.chartGrid.operators.equals') },
+    { value: 'startsWith', label: t('stage3.chartGrid.operators.startsWith') },
+    { value: 'endsWith', label: t('stage3.chartGrid.operators.endsWith') }
   ];
 
   const handleAddFilter = () => {
@@ -437,8 +440,8 @@ const ChartFilters: React.FC<ChartFiltersProps> = ({
   return (
     <div className="chart-filters-container">
       <div className="filters-header">
-        <h5>Chart Filters</h5>
-        <small>Filter data for this chart only</small>
+        <h5>{t('stage3.chartGrid.filters.chartFilters')}</h5>
+        <small>{t('stage3.chartGrid.filters.filterDataForThisChartOnly')}</small>
       </div>
       
       {/* Add New Filter */}
@@ -448,7 +451,7 @@ const ChartFilters: React.FC<ChartFiltersProps> = ({
           onChange={(e) => setNewFilter({ ...newFilter, field: e.target.value })}
           className="form-input"
         >
-          <option value="">Select field</option>
+          <option value="">{t('stage3.chartGrid.filters.selectField')}</option>
           {dataFields.map(field => (
             <option key={field.key} value={field.key}>
               {field.label}
@@ -472,7 +475,7 @@ const ChartFilters: React.FC<ChartFiltersProps> = ({
           type="text"
           value={newFilter.value}
           onChange={(e) => setNewFilter({ ...newFilter, value: e.target.value })}
-          placeholder="Enter value"
+          placeholder={t('stage3.chartGrid.filters.enterValue')}
           className="form-input"
         />
         
@@ -481,7 +484,7 @@ const ChartFilters: React.FC<ChartFiltersProps> = ({
           className="btn btn-small btn-primary"
           disabled={!newFilter.field || !newFilter.value}
         >
-          Add Filter
+          {t('stage3.chartGrid.filters.addFilter')}
         </button>
       </div>
 
@@ -496,7 +499,7 @@ const ChartFilters: React.FC<ChartFiltersProps> = ({
               <button
                 onClick={() => onRemoveFilter(chartId, filter.id)}
                 className="btn-remove-filter"
-                title="Remove filter"
+                title={t('stage3.chartGrid.filters.removeFilter')}
               >
                 ×
               </button>

@@ -54,17 +54,13 @@ const Stage2: React.FC<Stage2Props> = ({ onNext }) => {
         setIsLoadingData(true);
         
         // Load emission factors first
-        console.log('Loading emission factors...');
         const factors = await indexedDBService.getAllEmissionFactors();
         setEmissionFactors(Array.isArray(factors) ? factors : []);
-        console.log('Emission factors loaded:', factors.length);
         
         // Then load activities
-        console.log('Loading activities...');
         const activitiesData = await indexedDBService.getAllReportingActivities();
         const activitiesArray = Array.isArray(activitiesData) ? activitiesData : [];
         setActivities(activitiesArray);
-        console.log('Activities loaded:', activitiesArray.length);
         
         setConnectionStatus('connected');
       } catch (error) {
@@ -84,19 +80,12 @@ const Stage2: React.FC<Stage2Props> = ({ onNext }) => {
   // Recalculate emissions for existing activities when emission factors are loaded
   useEffect(() => {
     if (emissionFactors.length > 0 && activities.length > 0) {
-      console.log('Recalculating emissions for activities:', activities.length);
-      console.log('Available emission factors:', emissionFactors.length);
-      
       const updatedActivities = activities.map(activity => {
-        console.log('Processing activity:', activity.activityName, 'with emissionFactorId:', activity.emissionFactorId);
-        
         if (activity.calculatedEmissions === undefined || activity.calculatedEmissions === null) {
           const factor = emissionFactors.find(f => String(f._id) === String(activity.emissionFactorId));
-          console.log('Found emission factor:', factor);
           
           if (factor && activity.quantity) {
             const calculatedEmissions = activity.quantity * factor.co2ePerUnit;
-            console.log('Calculated emissions:', calculatedEmissions, 'for quantity:', activity.quantity, 'and factor:', factor.co2ePerUnit);
             return {
               ...activity,
               calculatedEmissions
@@ -108,7 +97,6 @@ const Stage2: React.FC<Stage2Props> = ({ onNext }) => {
       
       // Only update if there are changes
       if (JSON.stringify(updatedActivities) !== JSON.stringify(activities)) {
-        console.log('Updating activities with calculated emissions');
         setActivities(updatedActivities);
         
         // Update activities in IndexedDB with calculated emissions
@@ -116,7 +104,6 @@ const Stage2: React.FC<Stage2Props> = ({ onNext }) => {
           if (activity.calculatedEmissions !== undefined && activity.calculatedEmissions !== null) {
             try {
               await indexedDBService.updateReportingActivity(activity);
-              console.log('Updated activity in IndexedDB:', activity._id);
             } catch (error) {
               console.error('Failed to update calculated emissions for activity:', activity._id, error);
             }
@@ -184,8 +171,6 @@ const Stage2: React.FC<Stage2Props> = ({ onNext }) => {
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
     
-    console.log(`Stage2: Input change - name: ${name}, value: ${value}, type: ${typeof value}`);
-    
     // Reset dependent fields when location or category changes
     if (name === 'location' || name === 'category') {
       setFormData(prev => ({
@@ -195,9 +180,6 @@ const Stage2: React.FC<Stage2Props> = ({ onNext }) => {
       }));
     } else if (name === 'emissionFactorId') {
       // Handle emission factor selection specifically
-      console.log(`Stage2: Selected emission factor ID: ${value}, type: ${typeof value}`);
-      console.log(`Stage2: Available emission factors:`, emissionFactors);
-      
       setFormData(prev => ({
         ...prev,
         emissionFactorId: value
@@ -217,12 +199,9 @@ const Stage2: React.FC<Stage2Props> = ({ onNext }) => {
     try {
       // Validate emission factor selection
       if (!formData.emissionFactorId) {
-        toast.error('Please select an emission factor');
+        toast.error(t('stage2.validation.emissionFactorRequired'));
         return;
       }
-      
-      console.log('Form submission - emissionFactorId:', formData.emissionFactorId, 'type:', typeof formData.emissionFactorId);
-      console.log('Available emission factors:', emissionFactors);
       
       // Find the emission factor - handle both string and number ID types
       let factor = null;
@@ -233,19 +212,8 @@ const Stage2: React.FC<Stage2Props> = ({ onNext }) => {
       // Try to find the factor by converting all IDs to strings for comparison
       factor = emissionFactors.find(f => String(f._id) === selectedIdStr);
       
-      if (factor) {
-        console.log('Found emission factor using string comparison:', factor);
-      } else {
-        console.log('No emission factor found with ID:', selectedIdStr);
-      }
-      
-      console.log('Form data quantity:', formData.quantity);
-      
       if (!factor) {
-        console.error('Emission factor not found after all conversion attempts');
-        console.error('Selected ID:', formData.emissionFactorId, 'type:', typeof formData.emissionFactorId);
-        console.error('Available emission factor IDs:', emissionFactors.map(f => ({ id: f._id, type: typeof f._id })));
-        toast.error('Selected emission factor not found. Please select a valid emission factor.');
+        toast.error(t('stage2.validation.emissionFactorNotFound'));
         return;
       }
       
@@ -258,24 +226,21 @@ const Stage2: React.FC<Stage2Props> = ({ onNext }) => {
       };
       
       const calculatedEmissions = formData.quantity * factor.co2ePerUnit;
-      console.log('Calculated emissions:', calculatedEmissions);
       
       const activityToSave = { 
         ...formData, 
         calculatedEmissions,
         emissionFactorData // Store the actual data, not just the ID
       };
-      console.log('Saving activity with emission factor data:', activityToSave);
       
       const newId = await indexedDBService.addReportingActivity(activityToSave);
-      console.log('Activity saved with ID:', newId);
       
-      toast.success('Activity saved successfully!');
+      toast.success(t('stage2.toast.savedSuccessfully'));
       resetForm();
       await refreshData();
     } catch (error) {
       console.error('Error saving activity:', error);
-      toast.error('Failed to save activity');
+      toast.error(t('stage2.toast.saveFailed'));
     } finally {
       setIsLoading(false);
     }
@@ -297,13 +262,13 @@ const Stage2: React.FC<Stage2Props> = ({ onNext }) => {
     setIsDeleting(true);
     try {
       await indexedDBService.deleteReportingActivity(deletingActivity._id);
-      toast.success('Activity deleted successfully!');
+      toast.success(t('stage2.toast.deletedSuccessfully'));
       setShowDeleteModal(false);
       setDeletingActivity(null);
       await refreshData();
     } catch (error) {
       console.error('Error deleting activity:', error);
-      toast.error('Failed to delete activity');
+      toast.error(t('stage2.toast.deleteFailed'));
     } finally {
       setIsDeleting(false);
     }
@@ -325,17 +290,12 @@ const Stage2: React.FC<Stage2Props> = ({ onNext }) => {
 
   const handleUpdateActivity = async (updatedActivity: ReportingActivity) => {
     try {
-      console.log('Updating activity:', updatedActivity);
-      console.log('Activity ID type:', typeof updatedActivity._id);
-      console.log('Activity ID value:', updatedActivity._id);
-      
       if (!updatedActivity._id) {
         throw new Error('Activity ID is missing');
       }
 
       // If we already have emission factor data, use it
       if (updatedActivity.emissionFactorData) {
-        console.log('Using stored emission factor data for calculation');
         const calculatedEmissions = updatedActivity.quantity * updatedActivity.emissionFactorData.co2ePerUnit;
         const activityToUpdate = { ...updatedActivity, calculatedEmissions };
         await indexedDBService.updateReportingActivity(activityToUpdate);
@@ -348,7 +308,6 @@ const Stage2: React.FC<Stage2Props> = ({ onNext }) => {
         await indexedDBService.updateReportingActivity(activityToUpdate);
       }
       
-      console.log('Update successful');
       // Refresh the data to show the updated activity
       await refreshData();
     } catch (error) {
@@ -357,66 +316,17 @@ const Stage2: React.FC<Stage2Props> = ({ onNext }) => {
     }
   };
 
-  const createTestData = async () => {
-    try {
-      console.log('Creating test data...');
-      
-      // Create a test emission factor
-      const testFactor = {
-        description: 'Test Electricity Factor',
-        scope: 'Scope 2',
-        category: 'Electricity',
-        location: 'Test Location',
-        unit: 'kWh',
-        dataSource: 'Test Source',
-        methodType: 'Volume Based' as const,
-        co2ePerUnit: 0.5,
-        emissionFactorUnit: 'kg CO2e/kWh',
-        ghgReportingStandard: 'GHG Protocol',
-        sourceOrDisclosureRequirement: 'Test'
-      };
-      
-      const factorId = await indexedDBService.addEmissionFactor(testFactor);
-      console.log('Test emission factor created with ID:', factorId);
-      
-      // Create a test activity
-      const testActivity = {
-        reportingPeriodStart: '2024-01-01',
-        reportingPeriodEnd: '2024-01-31',
-        scope: 'Scope 2',
-        category: 'Electricity',
-        activityName: 'Test Activity',
-        location: 'Test Location',
-        quantity: 100,
-        emissionFactorId: factorId,
-        remarks: 'Test activity',
-        calculatedEmissions: 50 // 100 * 0.5
-      };
-      
-      const activityId = await indexedDBService.addReportingActivity(testActivity);
-      console.log('Test activity created with ID:', activityId);
-      
-      toast.success('Test data created successfully!');
-      
-      // Refresh the data
-      await refreshData();
-    } catch (error) {
-      console.error('Error creating test data:', error);
-      toast.error('Failed to create test data');
-    }
-  };
+  // Test data creation function removed for production
 
   const repairBrokenReferences = async () => {
     try {
-      console.log('Repairing broken emission factor references...');
-      
       if (activities.length === 0) {
-        toast.error('No activities to repair');
+        toast.error(t('stage2.toast.noActivitiesToRepair'));
         return;
       }
       
       if (emissionFactors.length === 0) {
-        toast.error('No emission factors available for repair');
+        toast.error(t('stage2.toast.noEmissionFactorsForRepair'));
         return;
       }
       
@@ -425,8 +335,6 @@ const Stage2: React.FC<Stage2Props> = ({ onNext }) => {
         const factor = emissionFactors.find(f => String(f._id) === String(activity.emissionFactorId));
         
         if (!factor) {
-          console.log(`Activity ${activity.activityName} has broken reference to emission factor ID: ${activity.emissionFactorId}`);
-          
           // Try to find a matching emission factor by scope, category, and location
           const matchingFactor = emissionFactors.find(f => 
             f.scope === activity.scope && 
@@ -435,7 +343,6 @@ const Stage2: React.FC<Stage2Props> = ({ onNext }) => {
           );
           
           if (matchingFactor && matchingFactor._id) {
-            console.log(`Found matching emission factor: ${matchingFactor.description} (ID: ${matchingFactor._id})`);
             const calculatedEmissions = activity.quantity * matchingFactor.co2ePerUnit;
             
             // Store emission factor data directly
@@ -453,7 +360,6 @@ const Stage2: React.FC<Stage2Props> = ({ onNext }) => {
               emissionFactorData
             };
           } else {
-            console.log(`No matching emission factor found for activity: ${activity.activityName}`);
             // Set calculated emissions to 0 and keep the broken reference for now
             return {
               ...activity,
@@ -464,7 +370,6 @@ const Stage2: React.FC<Stage2Props> = ({ onNext }) => {
         
         // If factor exists but no emission factor data, add it
         if (factor && !activity.emissionFactorData) {
-          console.log(`Adding emission factor data for activity: ${activity.activityName}`);
           const emissionFactorData = {
             description: factor.description,
             co2ePerUnit: factor.co2ePerUnit,
@@ -485,7 +390,6 @@ const Stage2: React.FC<Stage2Props> = ({ onNext }) => {
       for (const activity of updatedActivities) {
         try {
           await indexedDBService.updateReportingActivity(activity);
-          console.log('Updated activity in IndexedDB:', activity._id);
         } catch (error) {
           console.error('Failed to update calculated emissions for activity:', activity._id, error);
         }
@@ -493,10 +397,10 @@ const Stage2: React.FC<Stage2Props> = ({ onNext }) => {
       
       // Update local state
       setActivities(updatedActivities);
-      toast.success('Broken references repaired successfully!');
+      toast.success(t('stage2.toast.brokenReferencesRepairedSuccessfully'));
     } catch (error) {
       console.error('Error repairing broken references:', error);
-      toast.error('Failed to repair broken references');
+      toast.error(t('stage2.toast.repairBrokenReferencesFailed'));
     }
   };
 
@@ -510,62 +414,38 @@ const Stage2: React.FC<Stage2Props> = ({ onNext }) => {
       return 'No emission factor selected';
     }
     
-    console.log('Looking for emission factor with ID:', id);
-    console.log('Available emission factors:', emissionFactors);
-    
     const factor = emissionFactors.find(f => String(f._id) === String(id));
-    console.log('Found factor:', factor);
     
     if (factor) {
       const description = `${factor.description} (${factor.co2ePerUnit} ${factor.emissionFactorUnit})`;
-      console.log('Returning description:', description);
       return description;
     }
     
-    console.log('No factor found, returning error message');
     return '⚠️ Emission factor not found (ID: ' + id + ')';
   };
 
   const calculateEmissions = (activity: ReportingActivity): number | null => {
-    console.log('Calculating emissions for activity:', activity.activityName);
-    console.log('Activity calculatedEmissions:', activity.calculatedEmissions);
-    console.log('Activity emissionFactorId:', activity.emissionFactorId);
-    console.log('Activity quantity:', activity.quantity);
-    
     // First try to use stored calculated emissions
     if (activity.calculatedEmissions !== undefined && activity.calculatedEmissions !== null) {
-      console.log('Using stored calculated emissions:', activity.calculatedEmissions);
       return activity.calculatedEmissions;
     }
     
     // If we have emission factor data stored directly, use that
     if (activity.emissionFactorData) {
       const calculated = activity.quantity * activity.emissionFactorData.co2ePerUnit;
-      console.log('Calculated using stored emission factor data:', calculated);
       return calculated;
     }
     
     // Fallback to looking up emission factor by ID
     if (activity.emissionFactorId) {
       const factor = emissionFactors.find(f => String(f._id) === String(activity.emissionFactorId));
-      console.log('Found emission factor for calculation:', factor);
       
       if (factor && activity.quantity) {
         const calculated = activity.quantity * factor.co2ePerUnit;
-        console.log('Calculated emissions:', calculated);
         return calculated;
       }
     }
     
-    if (!activity.emissionFactorId) {
-      console.log('No emission factor ID provided');
-    }
-    
-    if (!activity.quantity) {
-      console.log('Activity quantity is missing or invalid:', activity.quantity);
-    }
-    
-    console.log('Could not calculate emissions');
     return null;
   };
 
@@ -612,13 +492,11 @@ const Stage2: React.FC<Stage2Props> = ({ onNext }) => {
       f.location === activity.location
     );
     
-    console.log(`Available emission factors for activity "${activity.activityName}":`, availableFactors);
-    
-    if (availableFactors.length === 0) {
-      toast.error(`No emission factors found for Scope: ${activity.scope}, Category: ${activity.category}, Location: ${activity.location}`);
+          if (availableFactors.length === 0) {
+      toast.error(t('stage2.toast.noEmissionFactorsFound', { scope: activity.scope, category: activity.category, location: activity.location }));
     } else {
       const factorList = availableFactors.map(f => `${f.description} (ID: ${f._id})`).join('\n');
-      toast.success(`Found ${availableFactors.length} emission factors:\n${factorList}`, { duration: 5000 });
+      toast.success(t('stage2.toast.foundEmissionFactors', { count: availableFactors.length, factorList }), { duration: 5000 });
     }
   };
 
@@ -640,7 +518,6 @@ const Stage2: React.FC<Stage2Props> = ({ onNext }) => {
       };
       
       const factorId = await indexedDBService.addEmissionFactor(newFactor);
-      console.log('Created missing emission factor with ID:', factorId);
       
       // Update the activity to use the new emission factor
       const updatedActivity = {
@@ -650,28 +527,25 @@ const Stage2: React.FC<Stage2Props> = ({ onNext }) => {
       };
       
       await indexedDBService.updateReportingActivity(updatedActivity);
-      console.log('Updated activity to use new emission factor');
       
-      toast.success('Created missing emission factor and linked to activity!');
+      toast.success(t('stage2.toast.createdMissingEmissionFactorSuccessfully'));
       
       // Refresh the data
       await refreshData();
     } catch (error) {
       console.error('Error creating missing emission factor:', error);
-      toast.error('Failed to create missing emission factor');
+      toast.error(t('stage2.toast.createMissingEmissionFactorFailed'));
     }
   };
 
   const recalculateAllEmissions = async () => {
-    console.log('Manually recalculating emissions for all activities');
-    
     if (emissionFactors.length === 0) {
-      toast.error('No emission factors available for calculation');
+      toast.error(t('stage2.toast.noEmissionFactorsForCalculation'));
       return;
     }
     
     if (activities.length === 0) {
-      toast.error('No activities to recalculate');
+      toast.error(t('stage2.toast.noActivitiesToRecalculate'));
       return;
     }
     
@@ -680,13 +554,11 @@ const Stage2: React.FC<Stage2Props> = ({ onNext }) => {
         const factor = emissionFactors.find(f => String(f._id) === String(activity.emissionFactorId));
         if (factor && activity.quantity) {
           const calculatedEmissions = activity.quantity * factor.co2ePerUnit;
-          console.log(`Recalculated for ${activity.activityName}: ${activity.quantity} × ${factor.co2ePerUnit} = ${calculatedEmissions}`);
           return {
             ...activity,
             calculatedEmissions
           };
         } else {
-          console.log(`Could not calculate for ${activity.activityName}: factor=${!!factor}, quantity=${activity.quantity}`);
           return activity;
         }
       });
@@ -696,7 +568,6 @@ const Stage2: React.FC<Stage2Props> = ({ onNext }) => {
         if (activity.calculatedEmissions !== undefined && activity.calculatedEmissions !== null) {
           try {
             await indexedDBService.updateReportingActivity(activity);
-            console.log('Updated activity in IndexedDB:', activity._id);
           } catch (error) {
             console.error('Failed to update calculated emissions for activity:', activity._id, error);
           }
@@ -705,10 +576,10 @@ const Stage2: React.FC<Stage2Props> = ({ onNext }) => {
       
       // Update local state
       setActivities(updatedActivities);
-      toast.success('Emissions recalculated successfully!');
+      toast.success(t('stage2.toast.emissionsRecalculatedSuccessfully'));
     } catch (error) {
       console.error('Error recalculating emissions:', error);
-      toast.error('Failed to recalculate emissions');
+      toast.error(t('stage2.toast.recalculateEmissionsFailed'));
     }
   };
 
@@ -717,20 +588,16 @@ const Stage2: React.FC<Stage2Props> = ({ onNext }) => {
       setIsLoadingData(true);
       
       // Load emission factors first
-      console.log('Refreshing emission factors...');
       const factors = await indexedDBService.getAllEmissionFactors();
       setEmissionFactors(Array.isArray(factors) ? factors : []);
-      console.log('Emission factors refreshed:', factors.length);
       
       // Then load activities
-      console.log('Refreshing activities...');
       const activitiesData = await indexedDBService.getAllReportingActivities();
       const activitiesArray = Array.isArray(activitiesData) ? activitiesData : [];
       setActivities(activitiesArray);
-      console.log('Activities refreshed:', activitiesArray.length);
     } catch (error) {
       console.error('Error refreshing data:', error);
-      toast.error('Failed to refresh data');
+      toast.error(t('stage2.toast.refreshDataFailed'));
     } finally {
       setIsLoadingData(false);
     }
@@ -857,15 +724,11 @@ const Stage2: React.FC<Stage2Props> = ({ onNext }) => {
               disabled={!formData.scope || !formData.location || !formData.category}
             >
               <option value="">{t('stage2.placeholders.emissionFactorId')}</option>
-              {filteredEmissionFactors.map((factor) => {
-                console.log(`Stage2: Rendering option for factor:`, factor);
-                console.log(`Stage2: Factor ID: ${factor._id}, type: ${typeof factor._id}`);
-                return (
-                  <option key={factor._id} value={factor._id}>
-                    {factor.description} ({factor.co2ePerUnit} {factor.emissionFactorUnit})
-                  </option>
-                );
-              })}
+              {filteredEmissionFactors.map((factor) => (
+                <option key={factor._id} value={factor._id}>
+                  {factor.description} ({factor.co2ePerUnit} {factor.emissionFactorUnit})
+                </option>
+              ))}
             </select>
             {(!formData.scope || !formData.location || !formData.category) && (
               <small className="form-help">
@@ -901,19 +764,19 @@ const Stage2: React.FC<Stage2Props> = ({ onNext }) => {
           {t('stage2.savedActivities')}
           {connectionStatus === 'fallback' && (
             <span className="connection-status fallback">
-              📱 Using Local Storage
+              📱 {t('stage2.connectionStatus.fallback')}
             </span>
           )}
           {connectionStatus === 'error' && (
             <span className="connection-status error">
-              ⚠️ Connection Error
+              ⚠️ {t('stage2.connectionStatus.error')}
             </span>
           )}
         </h3>
         
         {isLoadingData ? (
           <div className="loading-state">
-            <p>Loading activities...</p>
+            <p>{t('common.loading')}</p>
           </div>
         ) : (
           <div className="table-container">
@@ -921,24 +784,22 @@ const Stage2: React.FC<Stage2Props> = ({ onNext }) => {
               <table className="data-table">
                 <thead>
                   <tr>
-                    <th>Activity Name</th>
-                    <th>Period</th>
-                    <th>Scope</th>
-                    <th>Category</th>
-                    <th>Country/Region/Location</th>
-                    <th>Quantity</th>
-                    <th>Emission Factor</th>
-                    <th>Calculated Emissions</th>
-                    <th>Remarks</th>
-                    <th>Actions</th>
+                    <th>{t('stage2.formLabels.activityName')}</th>
+                    <th>{t('stage2.formLabels.reportingPeriod')}</th>
+                    <th>{t('stage2.formLabels.scope')}</th>
+                    <th>{t('stage2.formLabels.category')}</th>
+                    <th>{t('stage2.formLabels.location')}</th>
+                    <th>{t('stage2.formLabels.quantity')}</th>
+                    <th>{t('stage2.formLabels.emissionFactorId')}</th>
+                    <th>{t('stage2.formLabels.calculatedEmissions')}</th>
+                    <th>{t('stage2.formLabels.remarks')}</th>
+                    <th>{t('common.actions')}</th>
                   </tr>
                 </thead>
                 <tbody>
                   {activities.map((activity) => {
-                    console.log('Rendering activity row:', activity);
                     const emissions = calculateEmissions(activity);
                     const unit = getEmissionFactorUnit(activity.emissionFactorId);
-                    console.log('Calculated emissions for row:', emissions, 'unit:', unit);
                     
                     // Check if emission factor exists
                     const factorExists = emissionFactors.some(f => String(f._id) === String(activity.emissionFactorId));

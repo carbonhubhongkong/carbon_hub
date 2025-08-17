@@ -6,9 +6,9 @@ const Logo: React.FC = () => {
     <div className="logo">
       <div className="logo-container">
         <img 
-          src="/carbon-hub-logo.png" 
+          src="/carbon-hub-logo-3.png" 
           alt="Carbon Hub Logo" 
-          width={75} 
+          width={120} 
           height={75}
           className="logo-image"
         />

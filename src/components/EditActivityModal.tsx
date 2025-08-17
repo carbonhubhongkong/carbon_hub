@@ -2,6 +2,8 @@
 
 import React, { useState, useEffect } from 'react';
 import { toast } from 'react-hot-toast';
+import { useTranslations } from 'next-intl';
+import { useI18n } from '../i18n/provider';
 import indexedDBService from '@/lib/indexedDB';
 import type { ReportingActivity, EmissionFactor } from '@/lib/indexedDB';
 
@@ -20,6 +22,11 @@ const EditActivityModal: React.FC<EditActivityModalProps> = ({
   onUpdate,
   emissionFactors,
 }) => {
+  const t = useTranslations();
+  const { locale } = useI18n();
+  
+  // Force re-render when locale changes to ensure immediate translation updates
+  const [forceUpdate, setForceUpdate] = useState(0);
   const [formData, setFormData] = useState<ReportingActivity>({
     reportingPeriodStart: '',
     reportingPeriodEnd: '',
@@ -34,6 +41,11 @@ const EditActivityModal: React.FC<EditActivityModalProps> = ({
   const [filteredEmissionFactors, setFilteredEmissionFactors] = useState<EmissionFactor[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
+
+  // Force re-render when locale changes to ensure immediate translation updates
+  useEffect(() => {
+    setForceUpdate(prev => prev + 1);
+  }, [locale]);
 
   // Initialize form data when activity changes
   useEffect(() => {
@@ -56,6 +68,24 @@ const EditActivityModal: React.FC<EditActivityModalProps> = ({
       }
     }
   }, [activity, emissionFactors]);
+
+  // Update validation errors when language changes
+  useEffect(() => {
+    if (Object.keys(fieldErrors).length > 0) {
+      // Re-validate all fields with current language
+      const updatedErrors: Record<string, string> = {};
+      Object.keys(fieldErrors).forEach(fieldKey => {
+        const value = formData[fieldKey as keyof ReportingActivity];
+        if (value !== undefined) {
+          const error = validateField(fieldKey, value);
+          if (error) {
+            updatedErrors[fieldKey] = error;
+          }
+        }
+      });
+      setFieldErrors(updatedErrors);
+    }
+  }, [locale, t]); // Dependency on both locale and translation function
 
   // Update filtered emission factors when filter criteria change
   useEffect(() => {
@@ -103,45 +133,45 @@ const EditActivityModal: React.FC<EditActivityModalProps> = ({
     switch (name) {
       case 'reportingPeriodStart':
         if (!value || value.trim() === '') {
-          return 'Start date is required';
+          return t('stage2.validation.startDateRequired');
         }
         return '';
       case 'reportingPeriodEnd':
         if (!value || value.trim() === '') {
-          return 'End date is required';
+          return t('stage2.validation.endDateRequired');
         }
         if (formData.reportingPeriodStart && new Date(value) <= new Date(formData.reportingPeriodStart)) {
-          return 'End date must be after start date';
+          return t('stage2.validation.endDateAfterStart');
         }
         return '';
       case 'scope':
         if (!value || value.trim() === '') {
-          return 'Scope is required';
+          return t('stage2.validation.scopeRequired');
         }
         return '';
       case 'category':
         if (!value || value.trim() === '') {
-          return 'Category is required';
+          return t('stage2.validation.categoryRequired');
         }
         return '';
       case 'activityName':
         if (!value || value.trim() === '') {
-          return 'Activity name is required';
+          return t('stage2.validation.activityNameRequired');
         }
         return '';
       case 'location':
         if (!value || value.trim() === '') {
-          return 'Location is required';
+          return t('stage2.validation.locationRequired');
         }
         return '';
       case 'quantity':
         if (value === undefined || value === null || value === '' || isNaN(Number(value)) || Number(value) <= 0) {
-          return 'Quantity must be a positive number';
+          return t('stage2.validation.quantityPositive');
         }
         return '';
       case 'emissionFactorId':
         if (!value || value.trim() === '') {
-          return 'Emission factor is required';
+          return t('stage2.validation.emissionFactorRequired');
         }
         return '';
       default:
@@ -302,12 +332,12 @@ const EditActivityModal: React.FC<EditActivityModalProps> = ({
       // Add a small delay to ensure the update is processed
       setTimeout(() => {
         onClose();
-        toast.success('Activity updated successfully!');
+        toast.success(t('stage2.toast.updatedSuccessfully'));
       }, 100);
     } catch (error) {
       console.error('EditActivityModal: Error updating activity:', error);
       // Don't close modal on error, let user see the error and try again
-      toast.error(error instanceof Error ? error.message : 'Failed to update activity');
+      toast.error(error instanceof Error ? error.message : t('stage2.toast.updateFailed'));
     } finally {
       setIsLoading(false);
     }
@@ -319,15 +349,15 @@ const EditActivityModal: React.FC<EditActivityModalProps> = ({
     <div className="modal-overlay" onClick={onClose}>
       <div className="modal-content" onClick={(e) => e.stopPropagation()}>
         <div className="modal-header">
-          <h3 className="modal-title">Edit Reporting Activity</h3>
+          <h3 className="modal-title">{t('stage2.editActivity.title')}</h3>
         </div>
         
         <form onSubmit={handleSubmit} className="modal-body">
           <div className="form-section">
-            <h4 className="section-title">Activity Information</h4>
+            <h4 className="section-title">{t('stage2.editActivity.activityInformation')}</h4>
             <div className="form-grid">
               <div className="form-group">
-                <label htmlFor="modal-activityName">Activity Name *</label>
+                <label htmlFor="modal-activityName">{t('stage2.formLabels.activityName')} *</label>
                 <input
                   type="text"
                   id="modal-activityName"
@@ -345,7 +375,7 @@ const EditActivityModal: React.FC<EditActivityModalProps> = ({
               </div>
               
               <div className="form-group">
-                <label htmlFor="modal-reportingPeriodStart">Reporting Period Start Date *</label>
+                <label htmlFor="modal-reportingPeriodStart">{t('stage2.formLabels.reportingPeriodStart')} *</label>
                 <input
                   type="date"
                   id="modal-reportingPeriodStart"
@@ -362,7 +392,7 @@ const EditActivityModal: React.FC<EditActivityModalProps> = ({
               </div>
               
               <div className="form-group">
-                <label htmlFor="modal-reportingPeriodEnd">Reporting Period End Date *</label>
+                <label htmlFor="modal-reportingPeriodEnd">{t('stage2.formLabels.reportingPeriodEnd')} *</label>
                 <input
                   type="date"
                   id="modal-reportingPeriodEnd"
@@ -379,7 +409,7 @@ const EditActivityModal: React.FC<EditActivityModalProps> = ({
               </div>
               
               <div className="form-group">
-                <label htmlFor="modal-scope">Scope *</label>
+                <label htmlFor="modal-scope">{t('stage2.formLabels.scope')} *</label>
                 <select
                   id="modal-scope"
                   name="scope"
@@ -389,7 +419,7 @@ const EditActivityModal: React.FC<EditActivityModalProps> = ({
                   required
                   className={`form-input ${fieldErrors.scope ? 'form-input-error' : ''}`}
                 >
-                  <option value="">Select scope</option>
+                  <option value="">{t('stage1.selectScope')}</option>
                   <option value="Scope 1">Scope 1</option>
                   <option value="Scope 2">Scope 2</option>
                   <option value="Scope 3">Scope 3</option>
@@ -400,7 +430,7 @@ const EditActivityModal: React.FC<EditActivityModalProps> = ({
               </div>
               
               <div className="form-group">
-                <label htmlFor="modal-category">Category *</label>
+                <label htmlFor="modal-category">{t('stage2.formLabels.category')} *</label>
                 <select
                   id="modal-category"
                   name="category"
@@ -410,7 +440,7 @@ const EditActivityModal: React.FC<EditActivityModalProps> = ({
                   required
                   className={`form-input ${fieldErrors.category ? 'form-input-error' : ''}`}
                 >
-                  <option value="">Select category</option>
+                  <option value="">{t('stage1.selectCategory')}</option>
                   {Array.from(new Set(emissionFactors.map(f => f.category).filter(Boolean))).sort().map((category) => (
                     <option key={category} value={category}>
                       {category}
@@ -423,7 +453,7 @@ const EditActivityModal: React.FC<EditActivityModalProps> = ({
               </div>
               
               <div className="form-group">
-                <label htmlFor="modal-location">Country/Region/Location *</label>
+                <label htmlFor="modal-location">{t('stage2.formLabels.location')} *</label>
                 <select
                   id="modal-location"
                   name="location"
@@ -433,7 +463,7 @@ const EditActivityModal: React.FC<EditActivityModalProps> = ({
                   required
                   className={`form-input ${fieldErrors.location ? 'form-input-error' : ''}`}
                 >
-                  <option value="">Select location</option>
+                  <option value="">{t('stage1.selectLocation')}</option>
                   {Array.from(new Set(emissionFactors.map(f => f.location).filter(Boolean))).sort().map((location) => (
                     <option key={location} value={location}>
                       {location}
@@ -446,7 +476,7 @@ const EditActivityModal: React.FC<EditActivityModalProps> = ({
               </div>
               
               <div className="form-group">
-                <label htmlFor="modal-quantity">Quantity *</label>
+                <label htmlFor="modal-quantity">{t('stage2.formLabels.quantity')} *</label>
                 <input
                   type="number"
                   id="modal-quantity"
@@ -465,7 +495,7 @@ const EditActivityModal: React.FC<EditActivityModalProps> = ({
               </div>
               
               <div className="form-group">
-                <label htmlFor="modal-emissionFactorId">Emission Factor *</label>
+                <label htmlFor="modal-emissionFactorId">{t('stage2.formLabels.emissionFactorId')} *</label>
                 <select
                   id="modal-emissionFactorId"
                   name="emissionFactorId"
@@ -476,7 +506,7 @@ const EditActivityModal: React.FC<EditActivityModalProps> = ({
                   className={`form-input ${fieldErrors.emissionFactorId ? 'form-input-error' : ''}`}
                   disabled={!formData.scope || !formData.location || !formData.category}
                 >
-                  <option value="">Select an emission factor</option>
+                  <option value="">{t('stage1.selectEmissionFactor')}</option>
                   {filteredEmissionFactors.map((factor) => {
                     const isSelected = String(factor._id) === String(formData.emissionFactorId);
                     console.log(`EditActivityModal: Rendering option for factor:`, factor);
@@ -492,7 +522,7 @@ const EditActivityModal: React.FC<EditActivityModalProps> = ({
                 </select>
                 {(!formData.scope || !formData.location || !formData.category) && (
                   <small className="form-help">
-                    Please select scope, location, and category first to see available emission factors
+                    {t('stage2.editActivity.selectScopeLocationCategory')}
                   </small>
                 )}
                 {fieldErrors.emissionFactorId && (
@@ -500,9 +530,9 @@ const EditActivityModal: React.FC<EditActivityModalProps> = ({
                 )}
                 {formData.emissionFactorId && (
                   <small className="form-help">
-                    Selected: {(() => {
+                    {t('stage2.editActivity.selected')}: {(() => {
                       const factor = emissionFactors.find(f => String(f._id) === String(formData.emissionFactorId));
-                      return factor ? `${factor.description} (ID: ${factor._id})` : 'Emission factor not found';
+                      return factor ? `${factor.description} (ID: ${factor._id})` : t('stage2.editActivity.emissionFactorNotFound');
                     })()}
                   </small>
                 )}
@@ -511,9 +541,9 @@ const EditActivityModal: React.FC<EditActivityModalProps> = ({
           </div>
 
           <div className="form-section">
-            <h4 className="section-title">Additional Information</h4>
+            <h4 className="section-title">{t('stage2.editActivity.additionalInformation')}</h4>
             <div className="form-group">
-              <label htmlFor="modal-remarks">Remarks</label>
+                              <label htmlFor="modal-remarks">{t('stage2.formLabels.remarks')}</label>
               <textarea
                 id="modal-remarks"
                 name="remarks"
@@ -533,14 +563,14 @@ const EditActivityModal: React.FC<EditActivityModalProps> = ({
               className="btn btn-secondary modal-btn"
               disabled={isLoading}
             >
-              Cancel
+              {t('common.cancel')}
             </button>
             <button
               type="submit"
               className="btn btn-primary modal-btn"
               disabled={isLoading}
             >
-              {isLoading ? 'Updating...' : 'Update'}
+              {isLoading ? t('stage2.updating') : t('stage2.update')}
             </button>
           </div>
         </form>

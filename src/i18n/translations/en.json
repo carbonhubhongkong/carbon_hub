@@ -25,6 +25,10 @@
     "bulkDelete": "Bulk Delete",
     "selectAll": "Select All",
     "deselectAll": "Deselect All",
+    "deleting": "Deleting...",
+    "deleteSelected": "Delete Selected ({count})",
+    "editEmissionFactor": "Edit emission factor",
+    "deleteEmissionFactor": "Delete emission factor",
     "yes": "Yes",
     "no": "No",
     "ok": "OK",
@@ -50,6 +54,8 @@
     "pause": "Pause",
     "resume": "Resume",
     "note": "Note",
+    "example": "Example",
+    "loading": "Loading...",
     "unknownError": "Unknown error"
   },
   "navigation": {
@@ -95,6 +101,7 @@
     "validatingData": "Validating data...",
     "importProgress": "Importing {current} of {total}...",
     "failedToDeleteSelectedRows": "Failed to delete selected rows",
+    "rowHasErrors": "Row has errors",
     "columnHeaders": {
       "description": "Description",
       "scope": "Scope",
@@ -136,8 +143,6 @@
     "noData": "No data available",
     "loading": "Loading...",
     "actions": "Actions",
-    "selectAll": "Select All",
-    "deselectAll": "Deselect All",
     "bulkDelete": "Bulk Delete",
     "edit": "Edit",
     "delete": "Delete",
@@ -244,8 +249,8 @@
   },
   "stage1": {
     "title": "Emission Factors Management",
-    "description": "Configure emission factors for carbon footprint calculations",
-    "descriptionLabel": "Configure emission factors for carbon footprint calculations",
+    "description": "Configure emission factors",
+    "descriptionLabel": "Configure emission factors",
     "importTitle": "Import Standard Emission Factors",
     "csvImportTitle": "CSV Import/Export Manager",
     "or": "OR",
@@ -300,7 +305,10 @@
       "required": "This field is required",
       "invalidNumber": "This field is required and must be a valid number",
       "enumError": "Must be one of: {options}",
-      "fieldRequired": "{fieldName} is required"
+      "fieldRequired": "{fieldName} is required",
+      "minValue": "{fieldName} must be at least {min}",
+      "maxValue": "{fieldName} must be at most {max}",
+      "invalidFormat": "{fieldName} format is invalid"
     },
     "tooltips": {
       "description": "Examples: \"Grid electricity, Hong Kong\", \"Natural gas consumption\"",
@@ -323,8 +331,17 @@
     "add": "Add",
     "cancel": "Cancel",
     "delete": "Delete",
+    "editEmissionFactorTitle": "Edit Emission Factor",
     "deleteEmissionFactorTitle": "Delete Emission Factor",
     "deleteEmissionFactorMessage": "Are you sure you want to delete this emission factor? This action cannot be undone.",
+    "updating": "Updating...",
+    "selectScope": "Select scope",
+    "selectCategory": "Select category",
+    "selectLocation": "Select location",
+    "selectEmissionFactor": "Select an emission factor",
+    "generalInfoTitle": "General Information",
+    "calculationMethodsTitle": "Calculation Method",
+    "emissionFactorReferenceTitle": "Emission Factor & Reference",
     "bulkDeleteEmissionFactorsTitle": "Bulk Delete Emission Factors",
     "bulkDeleteEmissionFactorsMessage": "Are you sure you want to delete the selected emission factors? This action cannot be undone.",
     "deleteAll": "Delete All",
@@ -348,8 +365,8 @@
   },
   "stage2": {
     "title": "Reporting Activity Data",
-    "description": "Enter your activity data for carbon footprint calculation",
-    "descriptionLabel": "Enter your activity data for carbon footprint calculation",
+    "description": "Enter your activity data",
+    "descriptionLabel": "Enter your activity data",
     "formLabels": {
       "reportingPeriodStart": "Reporting Period Start Date",
       "reportingPeriodEnd": "Reporting Period End Date",
@@ -359,7 +376,9 @@
       "location": "Country/Region/Location",
       "quantity": "Quantity",
       "emissionFactorId": "Emission Factor",
-      "remarks": "Remarks"
+      "remarks": "Remarks",
+      "reportingPeriod": "Period",
+      "calculatedEmissions": "Calculated Emissions"
     },
     "placeholders": {
       "reportingPeriodStart": "Select start date",
@@ -376,7 +395,17 @@
       "required": "This field is required",
       "invalidNumber": "This field must be a valid number",
       "dateRange": "End date must be after start date",
-      "selectScopeLocationCategory": "Please select scope, location, and category first to see available emission factors"
+      "selectScopeLocationCategory": "Please select scope, location, and category first to see available emission factors",
+      "startDateRequired": "Start date is required",
+      "endDateRequired": "End date is required",
+      "endDateAfterStart": "End date must be after start date",
+      "scopeRequired": "Scope is required",
+      "categoryRequired": "Category is required",
+      "activityNameRequired": "Activity name is required",
+      "locationRequired": "Location is required",
+      "quantityPositive": "Quantity must be a positive number",
+      "emissionFactorRequired": "Emission factor is required",
+      "emissionFactorNotFound": "Selected emission factor not found. Please select a valid emission factor."
     },
     "savedActivities": "Saved Activities",
     "noActivitiesMessage": "No activities added yet. Add your first activity above.",
@@ -394,12 +423,43 @@
     "defaultUnit": "kg CO2e",
     "dateRangeSeparator": "to",
     "toast": {
-      "loadDataFailed": "Failed to load data"
+      "loadDataFailed": "Failed to load data",
+      "updateFailed": "Failed to update activity",
+      "updatedSuccessfully": "Activity updated successfully!",
+      "savedSuccessfully": "Activity saved successfully!",
+      "deletedSuccessfully": "Activity deleted successfully!",
+      "testDataCreatedSuccessfully": "Test data created successfully!",
+      "brokenReferencesRepairedSuccessfully": "Broken references repaired successfully!",
+      "foundEmissionFactors": "Found {count} emission factors:\n{factorList}",
+      "createdMissingEmissionFactorSuccessfully": "Created missing emission factor and linked to activity!",
+      "emissionsRecalculatedSuccessfully": "Emissions recalculated successfully!",
+      "saveFailed": "Failed to save activity",
+      "deleteFailed": "Failed to delete activity",
+      "createTestDataFailed": "Failed to create test data",
+      "noActivitiesToRepair": "No activities to repair",
+      "noEmissionFactorsForRepair": "No emission factors available for repair",
+      "repairBrokenReferencesFailed": "Failed to repair broken references",
+      "noEmissionFactorsFound": "No emission factors found for Scope: {scope}, Category: {category}, Location: {location}",
+      "createMissingEmissionFactorFailed": "Failed to create missing emission factor",
+      "noEmissionFactorsForCalculation": "No emission factors available for calculation",
+      "noActivitiesToRecalculate": "No activities to recalculate",
+      "recalculateEmissionsFailed": "Failed to recalculate emissions",
+      "refreshDataFailed": "Failed to refresh data"
     },
     "connectionStatus": {
       "connected": "Connected to database",
       "fallback": "Using fallback data",
       "error": "Database connection error"
+    },
+    "updating": "Updating...",
+    "update": "Update",
+    "editActivity": {
+      "title": "Edit Reporting Activity",
+      "activityInformation": "Activity Information",
+      "additionalInformation": "Additional Information",
+      "selectScopeLocationCategory": "Please select scope, location, and category first to see available emission factors",
+      "selected": "Selected",
+      "emissionFactorNotFound": "Emission factor not found"
     }
   },
   "stage3": {
@@ -430,7 +490,144 @@
       "scopeBreakdown": "Scope Breakdown",
       "categoryBreakdown": "Category Breakdown",
       "locationBreakdown": "Location Breakdown"
-    }
+    },
+    "createNewChart": "Create New Chart",
+    "resetToDefaults": "Reset to Defaults",
+    "detailedDataExport": "Detailed Data Export",
+    "exportFilteredData": "Export Filtered Data",
+    "noActivitiesFound": "No activities found. Please add some activities in Stage 2.",
+    "chartCopySuffix": "(Copy)",
+    "defaultCharts": {
+      "emissionsByScope": "Emissions by Scope",
+      "emissionsYAxisLabel": "Emissions (kg CO2e)"
+    },
+    "toast": {
+      "saveChartConfigurationFailed": "Failed to save chart configuration",
+      "fetchReportDataFailed": "Failed to fetch report data",
+      "chartAddedSuccessfully": "Chart added successfully!",
+      "chartUpdatedSuccessfully": "Chart updated successfully!",
+      "chartDeletedSuccessfully": "Chart deleted successfully!",
+      "chartDuplicatedSuccessfully": "Chart duplicated successfully!",
+      "resetToDefaultCharts": "Reset to default charts",
+      "csvExportedSuccessfully": "CSV exported successfully!"
+    },
+    "chartBuilder": {
+      "editChart": "Edit Chart",
+      "createNewChart": "Create New Chart",
+      "formLabels": {
+        "chartTitle": "Chart Title",
+        "chartType": "Chart Type",
+        "xAxisField": "X-Axis Field",
+        "yAxisField": "Y-Axis Field",
+        "aggregationMethod": "Aggregation Method",
+        "xAxisLabel": "X-Axis Label",
+        "yAxisLabel": "Y-Axis Label",
+        "colorPalette": "Color Palette",
+        "chartSuggestions": "Chart Suggestions"
+      },
+      "placeholders": {
+        "enterChartTitle": "Enter chart title",
+        "selectXAxisField": "Select X-axis field",
+        "selectYAxisField": "Select Y-axis field",
+        "leaveEmptyForFieldName": "Leave empty to use field name"
+      },
+      "chartTypes": {
+        "bar": "Bar Chart",
+        "line": "Line Chart",
+        "pie": "Pie Chart",
+        "donut": "Donut Chart"
+      },
+      "chartTypeDescriptions": {
+        "bar": "Best for comparing categories or showing trends over time",
+        "line": "Ideal for showing trends and changes over time",
+        "pie": "Great for showing parts of a whole",
+        "donut": "Similar to pie chart but with center space"
+      },
+      "aggregationTypes": {
+        "sum": "Sum",
+        "average": "Average",
+        "count": "Count",
+        "min": "Minimum",
+        "max": "Maximum"
+      },
+      "aggregationTypeDescriptions": {
+        "sum": "Add up all values",
+        "average": "Calculate mean value",
+        "count": "Count number of records",
+        "min": "Find lowest value",
+        "max": "Find highest value"
+      },
+      "fieldDescriptions": {
+        "activityName": "Name of the activity",
+        "reportingPeriodStart": "Start date of reporting period",
+        "reportingPeriodEnd": "End date of reporting period",
+        "scope": "GHG scope classification",
+        "category": "Activity category",
+        "location": "Geographic location",
+        "quantity": "Activity quantity",
+        "emissionFactorId": "Emission factor identifier",
+        "calculatedEmissions": "Calculated CO2e emissions"
+      },
+      "validation": {
+        "chartTitleRequired": "Chart title is required",
+        "xAxisRequired": "X-axis field is required",
+        "yAxisRequired": "Y-axis field is required",
+        "axesMustBeDifferent": "X and Y axes must be different",
+        "pieDonutCategoricalWarning": "Pie/Donut charts work best with categorical data",
+        "lineChartWarning": "Line charts work best with date or sequential data"
+      },
+      "suggestions": {
+        "emissionsByScope": {
+          "title": "Emissions by Scope",
+          "description": "Compare emissions across different GHG scopes",
+          "reason": "Scope is a categorical field perfect for bar charts"
+        },
+        "emissionsByCategory": {
+          "title": "Emissions by Category",
+          "description": "Show emissions distribution across activity categories",
+          "reason": "Category breakdown works well with pie charts"
+        },
+        "emissionsOverTime": {
+          "title": "Emissions Over Time",
+          "description": "Track emissions trends across reporting periods",
+          "reason": "Time series data is perfect for line charts"
+        }
+      },
+      "warnings": "Warnings",
+      "apply": "Apply",
+      "updateChart": "Update Chart",
+      "createChart": "Create Chart",
+      "toast": {
+        "suggestionApplied": "Suggestion applied!",
+        "fixErrorsBeforeSaving": "Please fix the errors before saving"
+      }
+    },
+          "chartGrid": {
+        "analyticsCharts": "Analytics Charts",
+        "noChartsCreatedYet": "No charts created yet. Click \"Create Chart\" to get started.",
+        "chartCountDescription": "{count} chart{count, plural, one {} other {s}} • Drag to reorder • Click chart actions to manage",
+        "toggleFilters": "Toggle filters",
+        "downloadAsPNG": "Download as PNG",
+        "editChart": "Edit chart",
+        "duplicateChart": "Duplicate chart",
+        "deleteChart": "Delete chart",
+        "tip": "Tip",
+        "dragChartsToReorder": "Drag charts to reorder them. The order will be saved automatically.",
+        "operators": {
+          "contains": "Contains",
+          "equals": "Equals",
+          "startsWith": "Starts with",
+          "endsWith": "Ends with"
+        },
+        "filters": {
+          "chartFilters": "Chart Filters",
+          "filterDataForThisChartOnly": "Filter data for this chart only",
+          "selectField": "Select field",
+          "enterValue": "Enter value",
+          "addFilter": "Add Filter",
+          "removeFilter": "Remove filter"
+        }
+      }
   },
   "languageSelector": {
     "selectLanguage": "Select Language",

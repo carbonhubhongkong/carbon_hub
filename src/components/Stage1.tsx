@@ -389,28 +389,20 @@ const Stage1: React.FC<Stage1Props> = ({ onNext }) => {
 
   // Auto-scroll functions
   const scrollToImportSection = () => {
-    console.log('Auto-scrolling to import section...');
     if (importSectionRef.current) {
       importSectionRef.current.scrollIntoView({
         behavior: 'smooth',
         block: 'end'
       });
-      console.log('Scrolled to import section');
-    } else {
-      console.warn('Import section ref not found');
     }
   };
 
   const scrollToSavedFactors = () => {
-    console.log('Auto-scrolling to saved factors table...');
     if (savedFactorsRef.current) {
       savedFactorsRef.current.scrollIntoView({
         behavior: 'smooth',
         block: 'start'
       });
-      console.log('Scrolled to saved factors table');
-    } else {
-      console.warn('Saved factors ref not found');
     }
   };
 
@@ -664,8 +656,8 @@ const Stage1: React.FC<Stage1Props> = ({ onNext }) => {
             <div className="form-group">
               <label htmlFor="ghgReportingStandard">{t('stage1.formLabels.ghgReportingStandard')}</label>
               {/*
-                To add or change the dropdown options, update the MongoDB collection 'ghg_reporting_standards'.
-                See src/lib/mongodb.ts for seeding logic.
+                To add or change the dropdown options, update the default standards in src/lib/indexedDB.ts
+                in the seedDefaultData() method.
               */}
               <select
                 id="ghgReportingStandard"

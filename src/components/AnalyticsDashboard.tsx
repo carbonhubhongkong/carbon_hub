@@ -3,6 +3,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { Chart as ChartJS, CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend, ArcElement, PointElement, LineElement, LineController } from 'chart.js';
 import { toast } from 'react-hot-toast';
+import { useTranslations } from 'next-intl';
 import indexedDBService from '@/lib/indexedDB';
 import type { ReportingActivity, EmissionFactor } from '@/lib/indexedDB';
 import ChartBuilder from './ChartBuilder';
@@ -15,6 +16,7 @@ ChartJS.register(
 );
 
 const AnalyticsDashboard: React.FC = () => {
+  const t = useTranslations();
   const [activities, setActivities] = useState<ReportingActivity[]>([]);
   const [emissionFactors, setEmissionFactors] = useState<EmissionFactor[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -28,13 +30,13 @@ const AnalyticsDashboard: React.FC = () => {
     return [
       {
         id: 'default-1',
-        title: 'Emissions by Scope',
+        title: t('stage3.defaultCharts.emissionsByScope'),
         chartType: 'bar',
         xAxis: 'scope',
         yAxis: 'calculatedEmissions',
         aggregation: 'sum',
-        xAxisLabel: 'Scope',
-        yAxisLabel: 'Emissions (kg CO2e)',
+        xAxisLabel: t('stage2.formLabels.scope'),
+        yAxisLabel: t('stage3.defaultCharts.emissionsYAxisLabel'),
         colors: ['#2E7D32', '#4CAF50', '#8BC34A', '#CDDC39'],
         isDefault: true
       }
@@ -63,7 +65,7 @@ const AnalyticsDashboard: React.FC = () => {
       setCharts(chartsToSave);
     } catch (error) {
       console.error('Error saving charts:', error);
-      toast.error('Failed to save chart configuration');
+              toast.error(t('stage3.toast.saveChartConfigurationFailed'));
     }
   }, []);
 
@@ -78,7 +80,7 @@ const AnalyticsDashboard: React.FC = () => {
       setEmissionFactors(factorsData);
     } catch (error) {
       console.error('Error fetching data:', error);
-      toast.error('Failed to fetch report data');
+      toast.error(t('stage3.toast.fetchReportDataFailed'));
     } finally {
       setIsLoading(false);
     }
@@ -111,7 +113,7 @@ const AnalyticsDashboard: React.FC = () => {
     saveCharts(updatedCharts);
     setShowChartBuilder(false);
     setEditingChart(null);
-    toast.success('Chart added successfully!');
+    toast.success(t('stage3.toast.chartAddedSuccessfully'));
   };
 
   const updateChart = (updatedChart: ChartConfig) => {
@@ -121,25 +123,25 @@ const AnalyticsDashboard: React.FC = () => {
     saveCharts(updatedCharts);
     setShowChartBuilder(false);
     setEditingChart(null);
-    toast.success('Chart updated successfully!');
+    toast.success(t('stage3.toast.chartUpdatedSuccessfully'));
   };
 
   const deleteChart = (chartId: string) => {
     const updatedCharts = charts.filter(chart => chart.id !== chartId);
     saveCharts(updatedCharts);
-    toast.success('Chart deleted successfully!');
+    toast.success(t('stage3.toast.chartDeletedSuccessfully'));
   };
 
   const duplicateChart = (chart: ChartConfig) => {
     const duplicatedChart = {
       ...chart,
       id: `chart-${Date.now()}`,
-      title: `${chart.title} (Copy)`,
+      title: `${chart.title} ${t('stage3.chartCopySuffix')}`,
       isDefault: false
     };
     const updatedCharts = [...charts, duplicatedChart];
     saveCharts(updatedCharts);
-    toast.success('Chart duplicated successfully!');
+    toast.success(t('stage3.toast.chartDuplicatedSuccessfully'));
   };
 
   const editChart = (chart: ChartConfig) => {
@@ -160,16 +162,16 @@ const AnalyticsDashboard: React.FC = () => {
 
   const generateCSV = useCallback((data: ReportingActivity[]): string => {
     const headers = [
-      'Activity Name',
-      'Period Start Date',
-      'Period End Date',
-      'Scope',
-      'Category',
-      'Country/Region/Location',
-      'Quantity',
-      'Emission Factor',
-      'Remarks',
-      'Calculated Emissions'
+      t('stage2.formLabels.activityName'),
+      t('stage2.formLabels.reportingPeriodStart'),
+      t('stage2.formLabels.reportingPeriodEnd'),
+      t('stage2.formLabels.scope'),
+      t('stage2.formLabels.category'),
+      t('stage2.formLabels.location'),
+      t('stage2.formLabels.quantity'),
+      t('stage2.formLabels.emissionFactorId'),
+      t('stage2.formLabels.remarks'),
+      t('stage2.formLabels.calculatedEmissions')
     ];
 
     const csvData = data.map(activity => [
@@ -200,21 +202,21 @@ const AnalyticsDashboard: React.FC = () => {
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
-    toast.success('CSV exported successfully!');
+          toast.success(t('stage3.toast.csvExportedSuccessfully'));
   }, []);
 
   if (isLoading) {
     return (
       <div className="stage">
-        <h2 className="stage-title">Analytics Dashboard</h2>
-        <div className="loading">Loading analytics data...</div>
+        <h2 className="stage-title">{t('stage3.title')}</h2>
+        <div className="loading">{t('common.loading')}</div>
       </div>
     );
   }
 
   return (
     <div className="stage">
-      <h2 className="stage-title">Analytics Dashboard</h2>
+      <h2 className="stage-title">{t('stage3.title')}</h2>
 
       {/* Global Filters */}
       {/* The GlobalFilters component was removed, so this section is no longer needed. */}
@@ -225,17 +227,17 @@ const AnalyticsDashboard: React.FC = () => {
           onClick={() => setShowChartBuilder(true)}
           className="btn btn-primary"
         >
-          + Create New Chart
+          + {t('stage3.createNewChart')}
         </button>
         <button 
           onClick={() => {
             setCharts(getDefaultCharts());
             saveCharts(getDefaultCharts());
-            toast.success('Reset to default charts');
+            toast.success(t('stage3.toast.resetToDefaultCharts'));
           }}
           className="btn btn-secondary"
         >
-          Reset to Defaults
+          {t('stage3.resetToDefaults')}
         </button>
       </div>
 
@@ -263,7 +265,7 @@ const AnalyticsDashboard: React.FC = () => {
       {/* Data Export Section */}
       <div className="data-section">
         <div className="table-header">
-          <h3 className="section-title">Detailed Data Export</h3>
+          <h3 className="section-title">{t('stage3.detailedDataExport')}</h3>
           <button 
             onClick={() => {
               const csvContent = generateCSV(filteredData);
@@ -271,7 +273,7 @@ const AnalyticsDashboard: React.FC = () => {
             }}
             className="btn btn-secondary"
           >
-            Export Filtered Data
+            {t('stage3.exportFilteredData')}
           </button>
         </div>
         <div className="table-container">
@@ -279,16 +281,16 @@ const AnalyticsDashboard: React.FC = () => {
             <table className="data-table">
               <thead>
                 <tr>
-                  <th>Activity Name</th>
-                  <th>Period Start</th>
-                  <th>Period End</th>
-                  <th>Scope</th>
-                  <th>Category</th>
-                  <th>Location</th>
-                  <th>Quantity</th>
-                  <th>Emission Factor</th>
-                  <th>Remarks</th>
-                  <th>Calculated Emissions</th>
+                  <th>{t('stage2.formLabels.activityName')}</th>
+                  <th>{t('stage2.formLabels.reportingPeriodStart')}</th>
+                  <th>{t('stage2.formLabels.reportingPeriodEnd')}</th>
+                  <th>{t('stage2.formLabels.scope')}</th>
+                  <th>{t('stage2.formLabels.category')}</th>
+                  <th>{t('stage2.formLabels.location')}</th>
+                  <th>{t('stage2.formLabels.quantity')}</th>
+                  <th>{t('stage2.formLabels.emissionFactorId')}</th>
+                  <th>{t('stage2.formLabels.remarks')}</th>
+                  <th>{t('stage2.formLabels.calculatedEmissions')}</th>
                 </tr>
               </thead>
               <tbody>
@@ -309,7 +311,7 @@ const AnalyticsDashboard: React.FC = () => {
               </tbody>
               <tfoot>
                 <tr className="total-row">
-                  <td colSpan={9}><strong>Total Emissions</strong></td>
+                  <td colSpan={9}><strong>{t('stage3.totalEmissions')}</strong></td>
                   <td><strong>
                     {filteredData
                       .reduce((sum, activity) => sum + (activity.calculatedEmissions || 0), 0)
@@ -321,7 +323,7 @@ const AnalyticsDashboard: React.FC = () => {
           ) : (
             <div className="no-data">
               {/* The globalFilters.length > 0 check was removed, so this message is no longer relevant. */}
-              No activities found. Please add some activities in Stage 2.
+              {t('stage3.noActivitiesFound')}
             </div>
           )}
         </div>

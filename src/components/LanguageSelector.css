@@ -9,8 +9,8 @@
   align-items: center;
   gap: 8px;
   padding: 8px 12px;
-  background: var(--primary-color, #2563eb);
-  color: white;
+  background: var(--surface);
+  color: var(--primary);
   border: none;
   border-radius: 8px;
   cursor: pointer;
@@ -21,7 +21,8 @@
 }
 
 .language-selector-button:hover {
-  background: var(--primary-hover, #1d4ed8);
+  background: var(--primary);
+  color: white;
   transform: translateY(-1px);
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
 }
@@ -65,6 +66,7 @@
     opacity: 0;
     transform: translateY(-8px);
   }
+
   to {
     opacity: 1;
     transform: translateY(0);
@@ -91,8 +93,8 @@
 }
 
 .language-option.selected {
-  background-color: var(--selected-bg, #eff6ff);
-  color: var(--primary-color, #2563eb);
+  background-color: var(--selected-bg, #e3fff4);
+  color: var(--primary);
 }
 
 .language-option .language-name {
@@ -101,7 +103,7 @@
 }
 
 .checkmark {
-  color: var(--primary-color, #2563eb);
+  color: white;
   font-weight: bold;
   font-size: 12px;
 }
@@ -112,11 +114,11 @@
     padding: 6px 10px;
     font-size: 13px;
   }
-  
+
   .language-name {
     min-width: 50px;
   }
-  
+
   .language-dropdown {
     min-width: 140px;
   }
@@ -126,13 +128,13 @@
   .language-selector-button .language-name {
     display: none;
   }
-  
+
   .language-selector-button {
     padding: 8px;
     min-width: 44px;
     justify-content: center;
   }
-  
+
   .language-dropdown {
     right: -20px;
   }

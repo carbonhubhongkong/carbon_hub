@@ -2,6 +2,7 @@
 
 import React from 'react';
 import { FaEdit, FaTrash } from 'react-icons/fa';
+import { useTranslations } from 'next-intl';
 import { emissionFactorFields, EmissionFactorData } from '../config/emissionFactorSchema';
 
 interface EmissionFactorTableProps {
@@ -31,6 +32,7 @@ const EmissionFactorTable: React.FC<EmissionFactorTableProps> = ({
   tableType,
   rowErrors = {}
 }) => {
+  const t = useTranslations();
   const allSelected = data.length > 0 && selectedRows.size === data.length;
   const someSelected = selectedRows.size > 0;
 
@@ -91,7 +93,7 @@ const EmissionFactorTable: React.FC<EmissionFactorTableProps> = ({
                 checked={allSelected}
                 onChange={(e) => onSelectAll(e.target.checked)}
               />
-              <span>Select All</span>
+              <span>{t('common.selectAll')}</span>
             </label>
             {someSelected && (
               <button
@@ -100,7 +102,7 @@ const EmissionFactorTable: React.FC<EmissionFactorTableProps> = ({
                 className="btn btn-danger btn-small"
                 disabled={isDeleting}
               >
-                {isDeleting ? 'Deleting...' : `Delete Selected (${selectedRows.size})`}
+                {isDeleting ? t('common.deleting') : t('common.deleteSelected', { count: selectedRows.size })}
               </button>
             )}
           </div>
@@ -118,10 +120,10 @@ const EmissionFactorTable: React.FC<EmissionFactorTableProps> = ({
               />
             </th>
             {emissionFactorFields.map(f => (
-              <th key={f.key}>{f.label}</th>
+              <th key={f.key}>{t(`stage1.formLabels.${f.key}`)}</th>
             ))}
             {tableType === 'csv' && <th></th>}
-            <th>Actions</th>
+            <th>{t('common.actions')}</th>
           </tr>
         </thead>
         <tbody>
@@ -159,7 +161,7 @@ const EmissionFactorTable: React.FC<EmissionFactorTableProps> = ({
                 {tableType === 'csv' && (
                   <td>
                     {hasErrors && (
-                      <span className="csv-caution" title="Row has errors">⚠️</span>
+                      <span className="csv-caution" title={t('csvManager.rowHasErrors')}>⚠️</span>
                     )}
                   </td>
                 )}
@@ -168,17 +170,17 @@ const EmissionFactorTable: React.FC<EmissionFactorTableProps> = ({
                     <button
                       onClick={() => onEdit(factor)}
                       className="btn btn-small btn-secondary"
-                      title="Edit emission factor"
+                      title={t('common.editEmissionFactor')}
                     >
-                      <FaEdit /> Edit
+                      <FaEdit /> {t('common.edit')}
                     </button>
                     <button
                       onClick={() => onDelete(factor)}
                       className="btn btn-small btn-danger"
-                      title="Delete emission factor"
+                      title={t('common.deleteEmissionFactor')}
                       disabled={isDeleting}
                     >
-                      <FaTrash /> Delete
+                      <FaTrash /> {t('common.delete')}
                     </button>
                   </div>
                 </td>

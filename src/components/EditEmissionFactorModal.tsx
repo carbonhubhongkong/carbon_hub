@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { useTranslations } from 'next-intl';
+import { useI18n } from '../i18n/provider';
 import { emissionFactorFields, EmissionFactorData } from '../config/emissionFactorSchema';
 
 interface EditEmissionFactorModalProps {
@@ -20,6 +21,10 @@ const EditEmissionFactorModal: React.FC<EditEmissionFactorModalProps> = ({
   ghgStandards,
 }) => {
   const t = useTranslations();
+  const { locale } = useI18n();
+  
+  // Force re-render when locale changes to ensure immediate translation updates
+  const [forceUpdate, setForceUpdate] = useState(0);
   const [formData, setFormData] = useState<EmissionFactorData>({
     description: '',
     scope: '',
@@ -36,6 +41,11 @@ const EditEmissionFactorModal: React.FC<EditEmissionFactorModalProps> = ({
   const [fieldErrors, setFieldErrors] = useState<Record<string, string | null>>({});
   const [showTooltips, setShowTooltips] = useState<Record<string, boolean>>({});
   const [isLoading, setIsLoading] = useState(false);
+
+  // Force re-render when locale changes to ensure immediate translation updates
+  useEffect(() => {
+    setForceUpdate(prev => prev + 1);
+  }, [locale]);
 
   // Initialize form data when factor changes
   useEffect(() => {
@@ -54,6 +64,24 @@ const EditEmissionFactorModal: React.FC<EditEmissionFactorModalProps> = ({
     }
   }, [factor]);
 
+  // Update validation errors when language changes
+  useEffect(() => {
+    if (Object.keys(fieldErrors).length > 0) {
+      // Re-validate all fields with current language
+      const updatedErrors: Record<string, string | null> = {};
+      Object.keys(fieldErrors).forEach(fieldKey => {
+        const value = formData[fieldKey as keyof EmissionFactorData];
+        if (value !== undefined) {
+          const error = validateField(fieldKey, value);
+          if (error) {
+            updatedErrors[fieldKey] = error;
+          }
+        }
+      });
+      setFieldErrors(updatedErrors);
+    }
+  }, [locale, t]); // Dependency on both locale and translation function
+
   // Real-time validation
   const validateField = (key: string, value: string | number): string | null => {
     const field = emissionFactorFields.find(f => f.key === key);
@@ -64,30 +92,30 @@ const EditEmissionFactorModal: React.FC<EditEmissionFactorModalProps> = ({
       if (field.type === 'number') {
         // For numbers, check if it's undefined, null, or NaN
         if (value === undefined || value === null || (typeof value === 'number' && isNaN(value))) {
-          return `${field.label} is required`;
+          return t('stage1.validation.fieldRequired', { fieldName: field.label });
         }
       } else {
         // For strings, check if it's undefined, null, or empty string
         // But allow empty strings if the field allows it (for CSV imports)
         if (value === undefined || value === null || 
             (typeof value === 'string' && value.trim() === '' && !field.allowEmpty)) {
-          return `${field.label} is required`;
+          return t('stage1.validation.fieldRequired', { fieldName: field.label });
         }
       }
     }
 
     if (field.validation) {
       if (field.validation.min !== undefined && typeof value === 'number' && value < field.validation.min) {
-        return `${field.label} must be at least ${field.validation.min}`;
+        return t('stage1.validation.minValue', { fieldName: field.label, min: field.validation.min });
       }
       if (field.validation.max !== undefined && typeof value === 'number' && value > field.validation.max) {
-        return `${field.label} must be at most ${field.validation.max}`;
+        return t('stage1.validation.maxValue', { fieldName: field.label, max: field.validation.max });
       }
       if (field.validation.regex && typeof value === 'string' && !new RegExp(field.validation.regex).test(value)) {
-        return field.validation.customError || `${field.label} format is invalid`;
+        return field.validation.customError || t('stage1.validation.invalidFormat', { fieldName: field.label });
       }
       if (field.validation.enumOptions && typeof value === 'string' && !field.validation.enumOptions.includes(value)) {
-        return `${field.label} must be one of: ${field.validation.enumOptions.join(', ')}`;
+        return t('stage1.validation.enumError', { options: field.validation.enumOptions.join(', ') });
       }
     }
 
@@ -118,18 +146,18 @@ const EditEmissionFactorModal: React.FC<EditEmissionFactorModalProps> = ({
     }
   };
 
-  const getTooltipContent = (fieldName: string) => {
-    const field = emissionFactorFields.find(f => f.key === fieldName);
-    if (!field) return '';
-    
-    return (
-      <div>
-        <strong>{field.label}</strong>
-        <br />
-        Example: {field.example}
-      </div>
-    );
-  };
+     const getTooltipContent = (fieldName: string) => {
+     const field = emissionFactorFields.find(f => f.key === fieldName);
+     if (!field) return '';
+     
+     return (
+       <div>
+         <strong>{t(`stage1.formLabels.${fieldName}`)}</strong>
+         <br />
+         {t('common.example')}: {field.example}
+       </div>
+     );
+   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -173,17 +201,17 @@ const EditEmissionFactorModal: React.FC<EditEmissionFactorModalProps> = ({
   return (
     <div className="modal-overlay" onClick={onClose}>
       <div className="modal-content" onClick={(e) => e.stopPropagation()}>
-        <div className="modal-header">
-          <h3 className="modal-title">Edit Emission Factor</h3>
-        </div>
+                 <div className="modal-header">
+           <h3 className="modal-title">{t('stage1.editEmissionFactorTitle')}</h3>
+         </div>
         
         <form onSubmit={handleSubmit} className="modal-body">
           {/* General Section */}
-          <div className="form-section">
-            <h4 className="section-title">General Information</h4>
+                     <div className="form-section">
+             <h4 className="section-title">{t('stage1.generalInfoTitle')}</h4>
             <div className="form-grid">
               <div className="form-group">
-                <label htmlFor="modal-description">Description *</label>
+                                 <label htmlFor="modal-description">{t('stage1.formLabels.description')} *</label>
                 <input
                   type="text"
                   id="modal-description"
@@ -206,7 +234,7 @@ const EditEmissionFactorModal: React.FC<EditEmissionFactorModalProps> = ({
               </div>
               
               <div className="form-group">
-                <label htmlFor="modal-scope">Scope *</label>
+                                 <label htmlFor="modal-scope">{t('stage1.formLabels.scope')} *</label>
                 <select
                   id="modal-scope"
                   name="scope"
@@ -217,7 +245,7 @@ const EditEmissionFactorModal: React.FC<EditEmissionFactorModalProps> = ({
                   required
                   className={`form-input ${fieldErrors.scope ? 'form-input-error' : ''}`}
                 >
-                  <option value="">Select scope</option>
+                                     <option value="">{t('stage1.selectScope')}</option>
                   {emissionFactorFields.find(f => f.key === 'scope')?.validation?.enumOptions?.map((option) => (
                     <option key={option} value={option}>{option}</option>
                   ))}
@@ -233,7 +261,7 @@ const EditEmissionFactorModal: React.FC<EditEmissionFactorModalProps> = ({
               </div>
               
               <div className="form-group">
-                <label htmlFor="modal-category">Category *</label>
+                                 <label htmlFor="modal-category">{t('stage1.formLabels.category')} *</label>
                 <input
                   type="text"
                   id="modal-category"
@@ -256,7 +284,7 @@ const EditEmissionFactorModal: React.FC<EditEmissionFactorModalProps> = ({
               </div>
               
               <div className="form-group">
-                <label htmlFor="modal-location">Country/Region/Location *</label>
+                                 <label htmlFor="modal-location">{t('stage1.formLabels.location')} *</label>
                 <input
                   type="text"
                   id="modal-location"
@@ -279,7 +307,7 @@ const EditEmissionFactorModal: React.FC<EditEmissionFactorModalProps> = ({
               </div>
               
               <div className="form-group">
-                <label htmlFor="modal-unit">Unit on Quantity *</label>
+                                 <label htmlFor="modal-unit">{t('stage1.formLabels.unit')} *</label>
                 <input
                   type="text"
                   id="modal-unit"
@@ -302,7 +330,7 @@ const EditEmissionFactorModal: React.FC<EditEmissionFactorModalProps> = ({
               </div>
               
               <div className="form-group">
-                <label htmlFor="modal-dataSource">Data Source/Collection Method *</label>
+                                 <label htmlFor="modal-dataSource">{t('stage1.formLabels.dataSource')} *</label>
                 <input
                   type="text"
                   id="modal-dataSource"
@@ -327,11 +355,11 @@ const EditEmissionFactorModal: React.FC<EditEmissionFactorModalProps> = ({
           </div>
 
           {/* Calculation Method Section */}
-          <div className="form-section">
-            <h4 className="section-title">Calculation Method</h4>
+                     <div className="form-section">
+             <h4 className="section-title">{t('stage1.calculationMethodsTitle')}</h4>
             <div className="form-grid">
               <div className="form-group">
-                <label htmlFor="modal-methodType">Method Type *</label>
+                                 <label htmlFor="modal-methodType">{t('stage1.formLabels.methodType')} *</label>
                 <select
                   id="modal-methodType"
                   name="methodType"
@@ -359,11 +387,11 @@ const EditEmissionFactorModal: React.FC<EditEmissionFactorModalProps> = ({
           </div>
 
           {/* Emission Factor Section */}
-          <div className="form-section">
-            <h4 className="section-title">Emission Factor & Reference</h4>
+                     <div className="form-section">
+             <h4 className="section-title">{t('stage1.emissionFactorReferenceTitle')}</h4>
             <div className="form-grid">
               <div className="form-group">
-                <label htmlFor="modal-co2ePerUnit">CO2e per Unit *</label>
+                                 <label htmlFor="modal-co2ePerUnit">{t('stage1.formLabels.co2ePerUnit')} *</label>
                 <input
                   type="number"
                   id="modal-co2ePerUnit"
@@ -388,7 +416,7 @@ const EditEmissionFactorModal: React.FC<EditEmissionFactorModalProps> = ({
               </div>
               
               <div className="form-group">
-                <label htmlFor="modal-emissionFactorUnit">Emission Factor Unit *</label>
+                                 <label htmlFor="modal-emissionFactorUnit">{t('stage1.formLabels.emissionFactorUnit')} *</label>
                 <input
                   type="text"
                   id="modal-emissionFactorUnit"
@@ -411,7 +439,7 @@ const EditEmissionFactorModal: React.FC<EditEmissionFactorModalProps> = ({
               </div>
               
               <div className="form-group">
-                <label htmlFor="modal-ghgReportingStandard">GHG Reporting Standard *</label>
+                                 <label htmlFor="modal-ghgReportingStandard">{t('stage1.formLabels.ghgReportingStandard')} *</label>
                 <select
                   id="modal-ghgReportingStandard"
                   name="ghgReportingStandard"
@@ -422,7 +450,7 @@ const EditEmissionFactorModal: React.FC<EditEmissionFactorModalProps> = ({
                   required
                   className={`form-input ${fieldErrors.ghgReportingStandard ? 'form-input-error' : ''}`}
                 >
-                  <option value="">Select a standard</option>
+                                     <option value="">{t('stage1.selectStandard')}</option>
                   {ghgStandards.map((standard) => (
                     <option key={standard} value={standard}>{standard}</option>
                   ))}
@@ -438,7 +466,7 @@ const EditEmissionFactorModal: React.FC<EditEmissionFactorModalProps> = ({
               </div>
               
               <div className="form-group">
-                <label htmlFor="modal-sourceOrDisclosureRequirement">Source or Disclosure Requirement *</label>
+                                 <label htmlFor="modal-sourceOrDisclosureRequirement">{t('stage1.formLabels.sourceOrDisclosureRequirement')} *</label>
                 <input
                   type="text"
                   id="modal-sourceOrDisclosureRequirement"
@@ -449,7 +477,7 @@ const EditEmissionFactorModal: React.FC<EditEmissionFactorModalProps> = ({
                   onBlur={() => handleFieldBlur('sourceOrDisclosureRequirement')}
                   required
                   className={`form-input ${fieldErrors.sourceOrDisclosureRequirement ? 'form-input-error' : ''}`}
-                  placeholder="Enter a weblink or remarks"
+                                     placeholder={t('stage1.placeholders.sourceOrDisclosureRequirement')}
                 />
                 {showTooltips.sourceOrDisclosureRequirement && (
                   <div className="form-tooltip">
@@ -471,7 +499,7 @@ const EditEmissionFactorModal: React.FC<EditEmissionFactorModalProps> = ({
             className="btn btn-secondary modal-btn"
             disabled={isLoading}
           >
-            Cancel
+                         {t('common.cancel')}
           </button>
           <button
             type="submit"
@@ -479,7 +507,7 @@ const EditEmissionFactorModal: React.FC<EditEmissionFactorModalProps> = ({
             className="btn btn-primary modal-btn"
             disabled={isLoading}
           >
-            {isLoading ? 'Updating...' : 'Update'}
+                         {isLoading ? t('stage1.updating') : t('stage1.update')}
           </button>
         </div>
       </div>

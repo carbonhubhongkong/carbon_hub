@@ -39,7 +39,6 @@ export default function Home() {
     manager.setDataCleanupCallback(async () => {
       try {
         await indexedDBService.clearAllData();
-        console.log('Data cleared successfully');
         // Refresh the page to reset all forms
         window.location.reload();
       } catch (error) {

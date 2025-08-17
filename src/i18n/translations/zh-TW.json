@@ -19,12 +19,16 @@
     "selectScope": "選擇範圍",
     "selectLocation": "選擇位置",
     "selectCategory": "選擇類別",
-    "selectEmissionFactor": "選擇排放因子",
+    "selectEmissionFactor": "選擇排放系數",
     "noData": "無可用資料",
     "actions": "操作",
-    "bulkDelete": "批量刪除",
+    "bulkDelete": "大刪除",
     "selectAll": "全選",
     "deselectAll": "取消全選",
+    "deleting": "刪除中...",
+    "deleteSelected": "刪除選定 ({count})",
+    "editEmissionFactor": "編輯排放系數",
+    "deleteEmissionFactor": "刪除排放系數",
     "yes": "是",
     "no": "否",
     "ok": "確定",
@@ -50,6 +54,8 @@
     "pause": "暫停",
     "resume": "恢復",
     "note": "注意",
+    "example": "範例",
+    "loading": "載入中...",
     "unknownError": "未知錯誤"
   },
   "navigation": {
@@ -66,7 +72,7 @@
   },
   "inactivityModal": {
     "title": "會話超時警告",
-    "message": "由於不活動，您的會話將在 {timeRemaining} 秒後過期。",
+    "message": "由於版面閒置，您的會話將在 {timeRemaining} 秒後過期。",
     "extendSession": "延長會話",
     "clearData": "清除資料並重新開始"
   },
@@ -78,8 +84,8 @@
     "expectedStructure": "預期 CSV 結構：",
     "structureDescription": "您的 CSV 應按順序包含以下欄位：",
     "structureNote": "注意：第一行應包含標題，後續行應包含資料。",
-    "readyToImport": "準備匯入 {count} 個排放因子",
-    "importButton": "匯入 {count} 個排放因子",
+    "readyToImport": "準備匯入 {count} 個排放系數",
+    "importButton": "匯入 {count} 個排放系數",
     "importing": "匯入中...",
     "validationErrors": "驗證錯誤",
     "noValidationErrors": "未發現驗證錯誤",
@@ -87,14 +93,15 @@
     "uploadError": "上傳 CSV 檔案時發生錯誤",
     "parseError": "解析 CSV 檔案時發生錯誤",
     "validationFailed": "CSV 驗證失敗",
-    "importSuccess": "成功匯入 {count} 個排放因子",
-    "importFailed": "匯入排放因子失敗",
+    "importSuccess": "成功匯入 {count} 個排放系數",
+    "importFailed": "匯入排放系數失敗",
     "fileTooLarge": "檔案太大。最大大小為 5MB",
     "invalidFileType": "無效的檔案類型。請上傳 CSV 檔案",
     "processingFile": "處理檔案中...",
     "validatingData": "驗證資料中...",
     "importProgress": "匯入中 {current}/{total}...",
     "failedToDeleteSelectedRows": "刪除選定行失敗",
+    "rowHasErrors": "行有錯誤",
     "columnHeaders": {
       "description": "描述",
       "scope": "範圍",
@@ -104,14 +111,14 @@
       "dataSource": "資料來源",
       "methodType": "方法類型",
       "co2ePerUnit": "每單位 CO2e",
-      "emissionFactorUnit": "排放因子單位",
+      "emissionFactorUnit": "排放系數單位",
       "ghgReportingStandard": "溫室氣體報告標準",
-      "sourceOrDisclosureRequirement": "來源或揭露要求"
+      "sourceOrDisclosureRequirement": "來源或披露要求"
     }
   },
   "modals": {
     "editEmissionFactor": {
-      "title": "編輯排放因子",
+      "title": "編輯排放系數",
       "saveChanges": "儲存變更",
       "cancel": "取消",
       "close": "關閉"
@@ -121,7 +128,7 @@
       "message": "您確定要刪除此項目嗎？此操作無法復原。",
       "confirmDelete": "刪除",
       "cancel": "取消",
-      "bulkDeleteTitle": "批量刪除確認",
+      "bulkDeleteTitle": "大量刪除確認",
       "bulkDeleteMessage": "您確定要刪除 {count} 個選定項目嗎？此操作無法復原。",
       "confirmBulkDelete": "全部刪除"
     },
@@ -138,7 +145,7 @@
     "actions": "操作",
     "selectAll": "全選",
     "deselectAll": "取消全選",
-    "bulkDelete": "批量刪除",
+    "bulkDelete": "大量刪除",
     "edit": "編輯",
     "delete": "刪除",
     "view": "檢視",
@@ -158,9 +165,9 @@
       "dataSource": "資料來源",
       "methodType": "方法類型",
       "co2ePerUnit": "每單位 CO2e",
-      "emissionFactorUnit": "排放因子單位",
+      "emissionFactorUnit": "排放系數單位",
       "ghgReportingStandard": "溫室氣體報告標準",
-      "sourceOrDisclosureRequirement": "來源或揭露要求",
+      "sourceOrDisclosureRequirement": "來源或披露要求",
       "activityName": "活動名稱",
       "reportingPeriod": "報告期間",
       "quantity": "數量",
@@ -243,17 +250,17 @@
     }
   },
   "stage1": {
-    "title": "排放因子管理",
-    "description": "配置碳足跡計算用的排放因子",
-    "descriptionLabel": "配置碳足跡計算用的排放因子",
-    "importTitle": "匯入標準排放因子",
+    "title": "排放系數管理",
+    "description": "配置碳足跡計算用的排放系數",
+    "descriptionLabel": "配置碳足跡計算用的排放系數",
+    "importTitle": "匯入標準排放系數",
     "csvImportTitle": "CSV 匯入/匯出管理",
     "or": "或",
-    "inputTitle": "輸入排放因子",
+    "inputTitle": "輸入排放系數",
     "generalInfoTitle": "一般資訊",
     "technicalSection": "技術細節",
     "calculationMethodsTitle": "計算方法",
-    "emissionFactorReferenceTitle": "排放因子與參考",
+    "emissionFactorReferenceTitle": "排放系數與參考",
     "formLabels": {
       "description": "描述",
       "scope": "範圍",
@@ -263,9 +270,9 @@
       "dataSource": "資料來源/收集方法",
       "methodType": "方法類型",
       "co2ePerUnit": "每單位 CO2e",
-      "emissionFactorUnit": "排放因子單位",
+      "emissionFactorUnit": "排放系數單位",
       "ghgReportingStandard": "溫室氣體報告標準",
-      "sourceOrDisclosureRequirement": "來源或揭露要求"
+      "sourceOrDisclosureRequirement": "來源或披露要求"
     },
     "placeholders": {
       "description": "輸入描述",
@@ -276,7 +283,7 @@
       "dataSource": "輸入資料來源",
       "methodType": "選擇方法類型",
       "co2ePerUnit": "輸入每單位 CO2e",
-      "emissionFactorUnit": "輸入排放因子單位",
+      "emissionFactorUnit": "輸入排放系數單位",
       "ghgReportingStandard": "選擇溫室氣體報告標準",
       "sourceOrDisclosureRequirement": "輸入網頁連結或備註"
     },
@@ -300,37 +307,49 @@
       "required": "此欄位為必填",
       "invalidNumber": "此欄位為必填且必須是有效數字",
       "enumError": "必須是以下其中之一：{options}",
-      "fieldRequired": "{fieldName} 為必填"
+      "fieldRequired": "{fieldName} 為必填",
+      "minValue": "{fieldName} 必須至少為 {min}",
+      "maxValue": "{fieldName} 必須最多為 {max}",
+      "invalidFormat": "{fieldName} 格式無效"
     },
-    "savedEmissionFactorsTitle": "已儲存的排放因子",
-    "noEmissionFactorsMessage": "尚未新增任何排放因子。請在上方新增您的第一個排放因子或從 CSV 匯入。",
+    "savedEmissionFactorsTitle": "已儲存的排放系數",
+    "noEmissionFactorsMessage": "尚未新增任何排放系數。請在上方新增您的第一個排放系數或從 CSV 匯入。",
     "nextButton": "下一步：報告活動資料",
     "saving": "儲存中...",
     "update": "更新",
+    "updating": "更新中...",
+    "selectScope": "選擇範圍",
+    "selectCategory": "選擇類別",
+    "selectLocation": "選擇位置",
+    "selectEmissionFactor": "選擇排放系數",
+    "generalInfoTitle": "基本資訊",
+    "calculationMethodsTitle": "計算方法",
+    "emissionFactorReferenceTitle": "排放系數與參考",
     "add": "新增",
     "cancel": "取消",
     "delete": "刪除",
-    "deleteEmissionFactorTitle": "刪除排放因子",
-    "deleteEmissionFactorMessage": "您確定要刪除此排放因子嗎？此操作無法復原。",
-    "bulkDeleteEmissionFactorsTitle": "批量刪除排放因子",
-    "bulkDeleteEmissionFactorsMessage": "您確定要刪除選定的排放因子嗎？此操作無法復原。",
+    "editEmissionFactorTitle": "編輯排放系數",
+    "deleteEmissionFactorTitle": "刪除排放系數",
+    "deleteEmissionFactorMessage": "您確定要刪除此排放系數嗎？此操作無法復原。",
+    "bulkDeleteEmissionFactorsTitle": "大量刪除排放系數",
+    "bulkDeleteEmissionFactorsMessage": "您確定要刪除選定的排放系數嗎？此操作無法復原。",
     "delete": "刪除",
     "deleteAll": "全部刪除",
     "toast": {
-      "addedSuccessfully": "排放因子新增成功！",
-      "addFailed": "新增排放因子失敗",
-      "updatedSuccessfully": "排放因子更新成功",
-      "updateFailed": "更新排放因子失敗",
-      "deletedSuccessfully": "排放因子刪除成功",
-      "deleteFailed": "刪除排放因子失敗",
-      "cannotUpdateMissingId": "無法更新：缺少排放因子ID",
-      "cannotDeleteMissingId": "無法刪除：缺少排放因子ID",
-      "selectAtLeastOneToDelete": "請至少選擇一個排放因子進行刪除",
-      "noFactorsSelectedForDeletion": "未選擇任何排放因子進行刪除",
-      "bulkDeleteSuccess": "成功刪除 {count} 個排放因子",
-      "bulkDeleteFailed": "刪除 {count} 個排放因子失敗",
-      "bulkDeleteAllFailed": "刪除所有排放因子失敗",
-      "fetchEmissionFactorsFailed": "獲取排放因子失敗",
+      "addedSuccessfully": "排放系數新增成功！",
+      "addFailed": "新增排放系數失敗",
+      "updatedSuccessfully": "排放系數更新成功",
+      "updateFailed": "更新排放系數失敗",
+      "deletedSuccessfully": "排放系數刪除成功",
+      "deleteFailed": "刪除排放系數失敗",
+      "cannotUpdateMissingId": "無法更新：缺少排放系數ID",
+      "cannotDeleteMissingId": "無法刪除：缺少排放系數ID",
+      "selectAtLeastOneToDelete": "請至少選擇一個排放系數進行刪除",
+      "noFactorsSelectedForDeletion": "未選擇任何排放系數進行刪除",
+      "bulkDeleteSuccess": "成功刪除 {count} 個排放系數",
+      "bulkDeleteFailed": "刪除 {count} 個排放系數失敗",
+      "bulkDeleteAllFailed": "刪除所有排放系數失敗",
+      "fetchEmissionFactorsFailed": "獲取排放系數失敗",
       "fetchGhgStandardsFailed": "獲取溫室氣體報告標準失敗"
     },
     "tooltips": {
@@ -359,8 +378,10 @@
       "activityName": "活動名稱",
       "location": "國家/地區/位置",
       "quantity": "數量",
-      "emissionFactorId": "排放因子",
-      "remarks": "備註"
+      "emissionFactorId": "排放系數",
+      "remarks": "備註",
+      "reportingPeriod": "期間",
+      "calculatedEmissions": "計算排放量"
     },
     "placeholders": {
       "reportingPeriodStart": "選擇開始日期",
@@ -370,14 +391,24 @@
       "activityName": "例如：辦公室用電消耗",
       "location": "選擇位置",
       "quantity": "例如：1000",
-      "emissionFactorId": "選擇排放因子",
+      "emissionFactorId": "選擇排放系數",
       "remarks": "額外備註或評論..."
     },
     "validation": {
       "required": "此欄位為必填",
       "invalidNumber": "此欄位必須是有效數字",
       "dateRange": "結束日期必須在開始日期之後",
-      "selectScopeLocationCategory": "請先選擇範圍、位置和類別以查看可用的排放因子"
+      "selectScopeLocationCategory": "請先選擇範圍、位置和類別以查看可用的排放系數",
+      "startDateRequired": "開始日期為必填",
+      "endDateRequired": "結束日期為必填",
+      "endDateAfterStart": "結束日期必須在開始日期之後",
+      "scopeRequired": "範圍為必填",
+      "categoryRequired": "類別為必填",
+      "activityNameRequired": "活動名稱為必填",
+      "locationRequired": "位置為必填",
+      "quantityPositive": "數量必須是正數",
+      "emissionFactorRequired": "排放系數為必填",
+      "emissionFactorNotFound": "選擇的排放系數未找到。請選擇有效的排放系數。"
     },
     "savedActivities": "已儲存的活動",
     "noActivitiesMessage": "尚未新增任何活動。請在上方新增您的第一個活動。",
@@ -390,16 +421,48 @@
       "confirmText": "刪除",
       "cancelText": "取消"
     },
-    "createMissingEmissionFactor": "建立排放因子",
-    "cannotCalculateEFMissing": "無法計算 - 排放因子缺失",
+    "createMissingEmissionFactor": "建立排放系數",
+    "cannotCalculateEFMissing": "無法計算 - 缺少排放系數",
     "defaultUnit": "kg CO2e",
+    "dateRangeSeparator": "至",
     "toast": {
-      "loadDataFailed": "載入資料失敗"
+      "loadDataFailed": "載入資料失敗",
+      "updateFailed": "更新活動失敗",
+      "updatedSuccessfully": "活動更新成功！",
+      "savedSuccessfully": "活動儲存成功！",
+      "deletedSuccessfully": "活動刪除成功！",
+      "testDataCreatedSuccessfully": "測試資料建立成功！",
+      "brokenReferencesRepairedSuccessfully": "損壞的引用修復成功！",
+      "foundEmissionFactors": "找到 {count} 個排放系數：\n{factorList}",
+      "createdMissingEmissionFactorSuccessfully": "建立了缺少的排放系數並連結到活動！",
+      "emissionsRecalculatedSuccessfully": "排放量重新計算成功！",
+      "saveFailed": "儲存活動失敗",
+      "deleteFailed": "刪除活動失敗",
+      "createTestDataFailed": "建立測試資料失敗",
+      "noActivitiesToRepair": "沒有活動需要修復",
+      "noEmissionFactorsForRepair": "沒有可用的排放系數進行修復",
+      "repairBrokenReferencesFailed": "修復損壞的引用失敗",
+      "noEmissionFactorsFound": "未找到範圍：{scope}、類別：{category}、位置：{location} 的排放系數",
+      "createMissingEmissionFactorFailed": "建立缺少的排放系數失敗",
+      "noEmissionFactorsForCalculation": "沒有可用的排放系數進行計算",
+      "noActivitiesToRecalculate": "沒有活動需要重新計算",
+      "recalculateEmissionsFailed": "重新計算排放量失敗",
+      "refreshDataFailed": "重新整理資料失敗"
     },
     "connectionStatus": {
       "connected": "已連接到資料庫",
       "fallback": "使用備用資料",
       "error": "資料庫連接錯誤"
+    },
+    "updating": "更新中...",
+    "update": "更新",
+    "editActivity": {
+      "title": "編輯報告活動",
+      "activityInformation": "活動資訊",
+      "additionalInformation": "附加資訊",
+      "selectScopeLocationCategory": "請先選擇範圍、位置和類別以查看可用的排放系數",
+      "selected": "已選擇",
+      "emissionFactorNotFound": "未找到排放系數"
     }
   },
   "stage3": {
@@ -430,7 +493,144 @@
       "scopeBreakdown": "範圍分類",
       "categoryBreakdown": "類別分類",
       "locationBreakdown": "位置分類"
-    }
+    },
+    "createNewChart": "建立新圖表",
+    "resetToDefaults": "重設為預設值",
+    "detailedDataExport": "詳細資料匯出",
+    "exportFilteredData": "匯出篩選資料",
+    "noActivitiesFound": "未找到活動。請在第二階段新增一些活動。",
+    "chartCopySuffix": "(副本)",
+    "defaultCharts": {
+      "emissionsByScope": "按範圍分類的排放量",
+      "emissionsYAxisLabel": "排放量 (kg CO2e)"
+    },
+    "toast": {
+      "saveChartConfigurationFailed": "儲存圖表設定失敗",
+      "fetchReportDataFailed": "取得報告資料失敗",
+      "chartAddedSuccessfully": "圖表新增成功！",
+      "chartUpdatedSuccessfully": "圖表更新成功！",
+      "chartDeletedSuccessfully": "圖表刪除成功！",
+      "chartDuplicatedSuccessfully": "圖表複製成功！",
+      "resetToDefaultCharts": "重設為預設圖表",
+      "csvExportedSuccessfully": "CSV匯出成功！"
+    },
+    "chartBuilder": {
+      "editChart": "編輯圖表",
+      "createNewChart": "建立新圖表",
+      "formLabels": {
+        "chartTitle": "圖表標題",
+        "chartType": "圖表類型",
+        "xAxisField": "X軸欄位",
+        "yAxisField": "Y軸欄位",
+        "aggregationMethod": "彙總方法",
+        "xAxisLabel": "X軸標籤",
+        "yAxisLabel": "Y軸標籤",
+        "colorPalette": "調色盤",
+        "chartSuggestions": "圖表建議"
+      },
+      "placeholders": {
+        "enterChartTitle": "輸入圖表標題",
+        "selectXAxisField": "選擇X軸欄位",
+        "selectYAxisField": "選擇Y軸欄位",
+        "leaveEmptyForFieldName": "留空以使用欄位名稱"
+      },
+      "chartTypes": {
+        "bar": "長條圖",
+        "line": "折線圖",
+        "pie": "圓餅圖",
+        "donut": "環形圖"
+      },
+      "chartTypeDescriptions": {
+        "bar": "最適合比較類別或顯示時間趨勢",
+        "line": "最適合顯示趨勢和隨時間的變化",
+        "pie": "最適合顯示整體的各個部分",
+        "donut": "與圓餅圖類似，但中心有空間"
+      },
+      "aggregationTypes": {
+        "sum": "總和",
+        "average": "平均值",
+        "count": "計數",
+        "min": "最小值",
+        "max": "最大值"
+      },
+      "aggregationTypeDescriptions": {
+        "sum": "將所有值相加",
+        "average": "計算平均值",
+        "count": "計算記錄數量",
+        "min": "找到最低值",
+        "max": "找到最高值"
+      },
+      "fieldDescriptions": {
+        "activityName": "活動名稱",
+        "reportingPeriodStart": "報告期間開始日期",
+        "reportingPeriodEnd": "報告期間結束日期",
+        "scope": "溫室氣體範圍分類",
+        "category": "活動類別",
+        "location": "地理位置",
+        "quantity": "活動數量",
+        "emissionFactorId": "排放系數識別碼",
+        "calculatedEmissions": "計算的CO2e排放量"
+      },
+      "validation": {
+        "chartTitleRequired": "圖表標題為必填項",
+        "xAxisRequired": "X軸欄位為必填項",
+        "yAxisRequired": "Y軸欄位為必填項",
+        "axesMustBeDifferent": "X軸和Y軸必須不同",
+        "pieDonutCategoricalWarning": "圓餅圖/環形圖最適合分類資料",
+        "lineChartWarning": "折線圖最適合X軸上的日期或順序資料"
+      },
+      "suggestions": {
+        "emissionsByScope": {
+          "title": "按範圍分類的排放量",
+          "description": "比較不同溫室氣體範圍的排放量",
+          "reason": "範圍是適合長條圖的分類欄位"
+        },
+        "emissionsByCategory": {
+          "title": "按類別分類的排放量",
+          "description": "顯示跨活動類別的排放量分佈",
+          "reason": "類別細分適合圓餅圖"
+        },
+        "emissionsOverTime": {
+          "title": "隨時間變化的排放量",
+          "description": "追蹤報告期間的排放量趨勢",
+          "reason": "時間序列資料最適合折線圖"
+        }
+      },
+      "warnings": "警告",
+      "apply": "套用",
+      "updateChart": "更新圖表",
+      "createChart": "建立圖表",
+      "toast": {
+        "suggestionApplied": "建議已套用！",
+        "fixErrorsBeforeSaving": "儲存前請修復錯誤"
+      }
+    },
+          "chartGrid": {
+        "analyticsCharts": "分析圖表",
+        "noChartsCreatedYet": "尚未建立圖表。點擊\"建立圖表\"開始使用。",
+        "chartCountDescription": "{count} 個圖表 • 拖拽重新排序 • 點擊圖表操作進行管理",
+        "toggleFilters": "切換篩選器",
+        "downloadAsPNG": "下載為PNG",
+        "editChart": "編輯圖表",
+        "duplicateChart": "複製圖表",
+        "deleteChart": "刪除圖表",
+        "tip": "提示",
+        "dragChartsToReorder": "拖拽圖表以重新排序。順序將自動儲存。",
+        "operators": {
+          "contains": "包含",
+          "equals": "等於",
+          "startsWith": "開始於",
+          "endsWith": "結束於"
+        },
+        "filters": {
+          "chartFilters": "圖表篩選器",
+          "filterDataForThisChartOnly": "僅篩選此圖表的資料",
+          "selectField": "選擇欄位",
+          "enterValue": "輸入值",
+          "addFilter": "新增篩選器",
+          "removeFilter": "移除篩選器"
+        }
+      }
   },
   "languageSelector": {
     "selectLanguage": "選擇語言",
