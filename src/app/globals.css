@@ -5,6 +5,18 @@
   box-sizing: border-box;
 }
 
+/* Smooth scrolling for all browsers */
+html {
+  scroll-behavior: smooth;
+}
+
+/* Ensure smooth scrolling works on iOS Safari */
+@supports (-webkit-overflow-scrolling: touch) {
+  html {
+    -webkit-overflow-scrolling: touch;
+  }
+}
+
 html,
 body {
   max-width: 100vw;
@@ -49,20 +61,23 @@ body {
 
 /* Logo Component */
 .logo {
-  text-align: center;
-  margin-bottom: 40px;
-  padding: 20px 0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto 40px auto;
+  padding: 20px;
 }
 
 .logo-container {
   display: flex;
-  justify-content: center;
   align-items: center;
 }
 
 .logo-image {
   display: block;
-  margin: 0 auto;
+  margin: 0;
 }
 
 /* Stepper Component */
@@ -171,6 +186,31 @@ body {
 /* Stage Components */
 .stage {
   width: 100%;
+  scroll-margin-top: 20px; /* Add margin for smooth scrolling */
+}
+
+/* Ensure proper spacing between sections for better scroll experience */
+.stage > * {
+  scroll-margin-top: 20px;
+}
+
+/* Smooth transitions for better user experience */
+.stage-title,
+.section-title,
+.form-section,
+.data-section {
+  transition: all 0.3s ease;
+}
+
+/* Highlight effect when scrolling to a section */
+.stage-title:target,
+.section-title:target,
+.form-section:target,
+.data-section:target {
+  background-color: rgba(46, 125, 50, 0.05);
+  border-radius: 8px;
+  padding: 10px;
+  margin: -10px;
 }
 
 .stage-title {
@@ -325,6 +365,8 @@ select {
 /* Data Section */
 .data-section {
   margin-top: 30px;
+  scroll-margin-top: 20px; /* Ensure proper scroll positioning */
+  padding-top: 10px; /* Add some padding for better visual separation */
 }
 
 .table-header {
@@ -843,6 +885,7 @@ select {
   border-radius: 8px;
   box-shadow: 0 2px 8px var(--shadow);
   padding: 24px;
+  scroll-margin-top: 20px; /* Ensure proper scroll positioning */
 }
 .csv-actions {
   display: flex;

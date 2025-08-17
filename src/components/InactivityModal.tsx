@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import { useTranslations } from 'next-intl';
 
 interface InactivityModalProps {
   isOpen: boolean;
@@ -15,6 +16,7 @@ const InactivityModal: React.FC<InactivityModalProps> = ({
   onClearData,
   timeRemaining
 }) => {
+  const t = useTranslations();
   const [countdown, setCountdown] = useState(timeRemaining);
 
   // Prevent body scroll and interaction when modal is open
@@ -86,10 +88,10 @@ const InactivityModal: React.FC<InactivityModalProps> = ({
     <div className="modal-overlay inactivity-modal-overlay">
       <div className="modal-content inactivity-modal-content">
         <div className="modal-header">
-          <h2 className="modal-title">Session Timeout Warning</h2>
+          <h2 className="modal-title">{t('inactivityModal.title')}</h2>
           <div className="countdown-container">
             <div className="countdown-timer">
-              Time remaining: <span className="countdown-time">{formatTime(countdown)}</span>
+              {t('inactivityModal.message', { timeRemaining: formatTime(countdown) })}
             </div>
             <div className="countdown-progress">
               <div 
@@ -106,8 +108,7 @@ const InactivityModal: React.FC<InactivityModalProps> = ({
         <div className="modal-body">
           <div className="warning-icon">⚠️</div>
           <p className="modal-message">
-            You&apos;ve been inactive for 20 minutes. Your input data will be automatically deleted in{' '}
-            <strong>{formatTime(countdown)}</strong> unless you choose to keep it longer.
+            {t('inactivityModal.message', { timeRemaining: formatTime(countdown) })}
           </p>
           
           <div className="modal-options">
@@ -124,20 +125,19 @@ const InactivityModal: React.FC<InactivityModalProps> = ({
             onClick={onExtendSession}
             className="btn btn-primary modal-btn"
           >
-            Need More Time
+            {t('inactivityModal.extendSession')}
           </button>
           <button 
             onClick={onClearData}
             className="btn btn-secondary modal-btn"
           >
-            Clear All Records
+            {t('inactivityModal.clearData')}
           </button>
         </div>
 
         <div className="modal-footer">
           <small>
-            Note: Your input data is only kept for 20 minutes unless you choose to keep it longer. 
-            All records will be deleted after 10 minutes of inactivity on this popup.
+            {t('dataRetention.description', { inactivityMinutes: 20, modalMinutes: 10 })}
           </small>
         </div>
       </div>

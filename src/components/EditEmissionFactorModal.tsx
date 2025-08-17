@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import { useTranslations } from 'next-intl';
 import { emissionFactorFields, EmissionFactorData } from '../config/emissionFactorSchema';
 
 interface EditEmissionFactorModalProps {
@@ -18,6 +19,7 @@ const EditEmissionFactorModal: React.FC<EditEmissionFactorModalProps> = ({
   onUpdate,
   ghgStandards,
 }) => {
+  const t = useTranslations();
   const [formData, setFormData] = useState<EmissionFactorData>({
     description: '',
     scope: '',

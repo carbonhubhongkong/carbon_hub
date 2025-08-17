@@ -1,7 +1,9 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { FaCheck } from 'react-icons/fa';
 import Papa from 'papaparse';
 import { toast } from 'react-hot-toast';
+import { useTranslations } from 'next-intl';
+import { useI18n } from '../i18n/provider';
 import { emissionFactorFields, EmissionFactorData } from '../config/emissionFactorSchema';
 import EditEmissionFactorModal from './EditEmissionFactorModal';
 import EmissionFactorTable from './EmissionFactorTable';
@@ -201,9 +203,17 @@ function validateRow(row: EmissionFactorData): Record<string, string> {
 
 interface EmissionFactorCSVManagerProps {
   onImportSuccess?: () => void; // Callback to notify parent of successful import
+  onCSVLoaded?: () => void; // Callback to notify parent when CSV is loaded
+  importSectionRef?: React.RefObject<HTMLDivElement | null>; // Ref for targeting the Import button section
 }
 
-const EmissionFactorCSVManager: React.FC<EmissionFactorCSVManagerProps> = ({ onImportSuccess }) => {
+const EmissionFactorCSVManager: React.FC<EmissionFactorCSVManagerProps> = ({ onImportSuccess, onCSVLoaded, importSectionRef }) => {
+  const t = useTranslations();
+  const { locale } = useI18n();
+  
+  // Force re-render when locale changes to ensure immediate translation updates
+  const [forceUpdate, setForceUpdate] = useState(0);
+  
   const [csvRows, setCsvRows] = useState<EmissionFactorData[]>([]);
   const [selectedRows, setSelectedRows] = useState<Set<number>>(new Set());
   const [rowErrors, setRowErrors] = useState<Record<number, Record<string, string>>>({});
@@ -253,6 +263,30 @@ const EmissionFactorCSVManager: React.FC<EmissionFactorCSVManagerProps> = ({ onI
       }
     }
   }, [csvRows.length]); // Only trigger when the number of rows changes
+
+  // Force re-render when locale changes to ensure immediate translation updates
+  useEffect(() => {
+    setForceUpdate(prev => prev + 1);
+  }, [locale]);
+
+  // Update validation errors when language changes
+  useEffect(() => {
+    if (Object.keys(rowErrors).length > 0 && csvRows.length > 0) {
+      // Re-validate all rows with current language
+      const updatedErrors: Record<number, Record<string, string>> = {};
+      Object.keys(rowErrors).forEach(rowIndexStr => {
+        const rowIndex = parseInt(rowIndexStr);
+        if (rowIndex >= 0 && rowIndex < csvRows.length) {
+          const row = csvRows[rowIndex];
+          const rowErrors = validateRow(row);
+          if (Object.keys(rowErrors).length > 0) {
+            updatedErrors[rowIndex] = rowErrors;
+          }
+        }
+      });
+      setRowErrors(updatedErrors);
+    }
+  }, [locale, t]); // Dependency on both locale and translation function
 
   const handleDownloadTemplate = () => {
     const csvContent = generateCSVTemplate();
@@ -335,6 +369,15 @@ const EmissionFactorCSVManager: React.FC<EmissionFactorCSVManagerProps> = ({ onI
         validateAllRows(mappedRows);
         
         setErrorMsg('');
+        
+        // Notify parent that CSV data is loaded for auto-scroll
+        if (onCSVLoaded) {
+          console.log('CSV data loaded, triggering onCSVLoaded callback...');
+          // Add a small delay to ensure DOM is updated
+          setTimeout(() => {
+            onCSVLoaded();
+          }, 100);
+        }
       },
       error: (error) => {
         setErrorMsg(`Error parsing CSV: ${error.message}`);
@@ -401,7 +444,7 @@ const EmissionFactorCSVManager: React.FC<EmissionFactorCSVManagerProps> = ({ onI
       
     } catch (error) {
       console.error('Error deleting rows:', error);
-      setErrorMsg('Failed to delete selected rows');
+              setErrorMsg(t('csvManager.failedToDeleteSelectedRows'));
     } finally {
       setIsDeleting(false);
     }
@@ -446,20 +489,21 @@ const EmissionFactorCSVManager: React.FC<EmissionFactorCSVManagerProps> = ({ onI
         
         // Notify parent component of successful import to refresh data
         if (onImportSuccess) {
+          console.log('Import successful, triggering onImportSuccess callback...');
           onImportSuccess();
         }
         
         // Show success message
-        toast.success(`Successfully imported ${added} emission factor${added > 1 ? 's' : ''}! The table below has been updated.`);
+        toast.success(t('csvManager.importSuccess', { count: added, plural: added > 1 ? 's' : '' }));
       } else {
         // Show partial success message if some failed
-        toast.error(`Import completed with ${failed} failure${failed > 1 ? 's' : ''}. ${added} emission factor${added > 1 ? 's' : ''} imported successfully.`);
+        toast.error(t('csvManager.importFailed'));
       }
       
           } catch (error) {
         console.error('Import error:', error);
         setErrorMsg('Import failed');
-        toast.error('Import failed. Please try again.');
+        toast.error(t('csvManager.importFailed'));
       } finally {
         setImporting(false);
         setImportProgress(0);
@@ -818,13 +862,14 @@ const EmissionFactorCSVManager: React.FC<EmissionFactorCSVManagerProps> = ({ onI
           className="btn btn-secondary"
           onClick={handleDownloadTemplate}
         >
-          Download CSV Template
+          {t('csvManager.downloadTemplate')}
         </button>
       </div>
       <div
         className="csv-dropzone"
         onDrop={handleDrop}
         onDragOver={handleDragOver}
+        onClick={() => fileInputRef.current?.click()}
         tabIndex={0}
         aria-label="Upload CSV file"
       >
@@ -834,22 +879,17 @@ const EmissionFactorCSVManager: React.FC<EmissionFactorCSVManagerProps> = ({ onI
           ref={fileInputRef}
           style={{ display: 'none' }}
           onChange={handleFileChange}
+          
         />
-        <span>Drag & drop a CSV file here, or </span>
-        <button
-          type="button"
-          className="btn btn-link"
-          onClick={() => fileInputRef.current?.click()}
-        >
-          click to select
-        </button>
+        <span>{t('csvManager.dragDropText')} </span>
+        <a href="" onClick={() => fileInputRef.current?.click()}>{t('csvManager.clickToSelect')}</a>
       </div>
       {errorMsg && <div className="csv-error">{errorMsg}</div>}
       
       {/* CSV Structure Information */}
       <div className="csv-info">
-        <h4>Expected CSV Structure:</h4>
-        <p>Your CSV should have the following columns in order:</p>
+        <h4>{t('csvManager.expectedStructure')}</h4>
+        <p>{t('csvManager.structureDescription')}</p>
         <div className="csv-columns">
           {emissionFactorFields.map((field, index) => (
             <span key={field.key} className="csv-column">
@@ -857,7 +897,7 @@ const EmissionFactorCSVManager: React.FC<EmissionFactorCSVManagerProps> = ({ onI
             </span>
           ))}
         </div>
-        <p><strong>Note:</strong> The first row should contain headers, and subsequent rows should contain data.</p>
+        <p><strong>{t('common.note')}:</strong> {t('csvManager.structureNote')}</p>
       </div>
       
       {/* Use unified table component */}
@@ -878,9 +918,9 @@ const EmissionFactorCSVManager: React.FC<EmissionFactorCSVManagerProps> = ({ onI
       )}
       
       {csvRows.length > 0 && (
-        <div className="csv-import-actions">
+        <div className="csv-import-actions" ref={importSectionRef}>
           <div className="csv-import-info">
-            <span>Ready to import {csvRows.length} emission factor{csvRows.length > 1 ? 's' : ''}</span>
+            <span>{t('csvManager.readyToImport', { count: csvRows.length, plural: csvRows.length > 1 ? 's' : '' })}</span>
           </div>
           <button
             className="btn btn-primary"
@@ -890,10 +930,10 @@ const EmissionFactorCSVManager: React.FC<EmissionFactorCSVManagerProps> = ({ onI
             {importing ? (
               <>
                 <span className="spinner"></span>
-                Importing... {Math.round(importProgress)}%
+                {t('csvManager.importing')} {Math.round(importProgress)}%
               </>
             ) : (
-              'Import'
+              t('csvManager.importButton', { count: csvRows.length, plural: csvRows.length > 1 ? 's' : '' })
             )}
           </button>
           {importing && (
@@ -901,7 +941,7 @@ const EmissionFactorCSVManager: React.FC<EmissionFactorCSVManagerProps> = ({ onI
               <div className="csv-progress-container">
                 <div className="csv-progress" style={{ width: `${importProgress}%` }}></div>
               </div>
-              <span className="csv-progress-text">Importing... {Math.round(importProgress)}%</span>
+              <span className="csv-progress-text">{t('csvManager.importing')} {Math.round(importProgress)}%</span>
             </div>
           )}
           {importResult && (
@@ -934,11 +974,11 @@ const EmissionFactorCSVManager: React.FC<EmissionFactorCSVManagerProps> = ({ onI
             // Wait a bit for state to update, then re-validate
             setTimeout(() => {
               console.log('Re-validating after edit...');
-              
+               
               // First, validate just the updated row
               const rowErrors = validateRow(updatedFactor);
               console.log(`Row ${editRowIdx} validation result:`, rowErrors);
-              
+               
               if (Object.keys(rowErrors).length > 0) {
                 // Set errors for this specific row
                 setRowErrors(prev => ({ ...prev, [editRowIdx]: rowErrors }));
@@ -952,28 +992,28 @@ const EmissionFactorCSVManager: React.FC<EmissionFactorCSVManagerProps> = ({ onI
                 });
                 console.log('Clearing validation errors for edited row');
               }
-              
+               
               // Then validate all rows to ensure consistency
               validateAllRows(updatedRows);
-              
+               
               // Final check: ensure the Import button state is correct
               setTimeout(() => {
                 const shouldBeEnabled = isImportEnabled();
                 console.log('Final Import button state check:', shouldBeEnabled);
-                
+                 
                 if (!shouldBeEnabled && Object.keys(rowErrors).length === 0) {
                   console.warn('Import button should be enabled but is not. Auto-fixing...');
                   autoFixValidationState();
                 }
-                
-                              // Additional check: ensure Import button state is correct
+                 
+                               // Additional check: ensure Import button state is correct
               ensureImportButtonState();
-              
+             
               // Final validation check to ensure complete cleanup
               finalValidationCheck();
             }, 200);
           }, 100);
-          
+           
           closeEditModal();
         }
       }}

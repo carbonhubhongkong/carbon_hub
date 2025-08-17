@@ -1,4 +1,5 @@
 import React from 'react';
+import LanguageSelector from './LanguageSelector';
 
 const Logo: React.FC = () => {
   return (
@@ -12,6 +13,7 @@ const Logo: React.FC = () => {
           className="logo-image"
         />
       </div>
+      <LanguageSelector />
     </div>
   );
 };

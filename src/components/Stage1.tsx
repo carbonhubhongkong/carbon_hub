@@ -2,6 +2,8 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import { toast } from 'react-hot-toast';
+import { useTranslations } from 'next-intl';
+import { useI18n } from '../i18n/provider';
 import EmissionFactorCSVManager from './EmissionFactorCSVManager';
 import EditEmissionFactorModal from './EditEmissionFactorModal';
 import DeleteConfirmationModal from './DeleteConfirmationModal';
@@ -15,6 +17,12 @@ interface Stage1Props {
 }
 
 const Stage1: React.FC<Stage1Props> = ({ onNext }) => {
+  const t = useTranslations();
+  const { locale } = useI18n();
+  
+  // Force re-render when locale changes to ensure immediate translation updates
+  const [forceUpdate, setForceUpdate] = useState(0);
+  
   const [formData, setFormData] = useState<EmissionFactorData>({
     description: '',
     scope: '',
@@ -31,7 +39,6 @@ const Stage1: React.FC<Stage1Props> = ({ onNext }) => {
 
   const [emissionFactors, setEmissionFactors] = useState<EmissionFactorData[]>([]);
   const [isEditing, setIsEditing] = useState(false);
-  const [editingId, setEditingId] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [editingFactor, setEditingFactor] = useState<EmissionFactorData | null>(null);
@@ -48,10 +55,35 @@ const Stage1: React.FC<Stage1Props> = ({ onNext }) => {
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
   const [showTooltips, setShowTooltips] = useState<Record<string, boolean>>({});
 
+  // Add refs for auto-scrolling
+  const importSectionRef = useRef<HTMLDivElement>(null);
+  const savedFactorsRef = useRef<HTMLDivElement>(null);
+
   useEffect(() => {
     fetchEmissionFactors();
     fetchGhgStandards();
   }, []);
+
+  // Force re-render when locale changes to ensure immediate translation updates
+  useEffect(() => {
+    setForceUpdate(prev => prev + 1);
+  }, [locale]);
+
+  // Update validation errors when language changes
+  useEffect(() => {
+    if (Object.keys(fieldErrors).length > 0) {
+      // Re-validate all fields with current language
+      const updatedErrors: Record<string, string> = {};
+      Object.keys(fieldErrors).forEach(fieldName => {
+        const value = formData[fieldName as keyof EmissionFactorData];
+        const error = validateField(fieldName, value);
+        if (error) {
+          updatedErrors[fieldName] = error;
+        }
+      });
+      setFieldErrors(updatedErrors);
+    }
+  }, [locale, t]); // Dependency on both locale and translation function
 
   const fetchEmissionFactors = async () => {
     try {
@@ -60,7 +92,7 @@ const Stage1: React.FC<Stage1Props> = ({ onNext }) => {
       setEmissionFactors(Array.isArray(data) ? data : []);
     } catch (error) {
       console.error('Error fetching emission factors:', error);
-      toast.error('Failed to fetch emission factors');
+      toast.error(t('stage1.toast.fetchEmissionFactorsFailed'));
       // Set empty array as fallback
       setEmissionFactors([]);
     }
@@ -74,35 +106,35 @@ const Stage1: React.FC<Stage1Props> = ({ onNext }) => {
       setGhgStandards(Array.isArray(standards) ? standards : []);
     } catch (error) {
       console.error('Error fetching GHG Reporting Standards:', error);
-      toast.error('Failed to fetch GHG Reporting Standards');
+      toast.error(t('stage1.toast.fetchGhgStandardsFailed'));
       // Set empty array as fallback
       setGhgStandards([]);
     }
   };
 
   // Real-time validation
-  const validateField = (name: string, value: any) => {
+  const validateField = (name: string, value: string | number | undefined) => {
     const field = emissionFactorFields.find(f => f.key === name);
     if (!field || !field.required) return '';
     
     // Only validate if user has started typing or field has been touched
     if (field.type === 'number') {
       if (value === undefined || value === null || isNaN(Number(value))) {
-        return 'This field is required and must be a valid number';
+        return t('stage1.validation.invalidNumber');
       }
     } else {
       // For strings, check if it's undefined, null, or empty string
       // But allow empty strings if the field allows it (for CSV imports)
       if (value === undefined || value === null || 
           (typeof value === 'string' && value.trim() === '' && !field.allowEmpty)) {
-        return 'This field is required';
+        return t('stage1.validation.required');
       }
     }
     
     // Additional validation for specific field types
     if (field.validation) {
       if (field.validation.enumOptions && typeof value === 'string' && !field.validation.enumOptions.includes(value)) {
-        return `Must be one of: ${field.validation.enumOptions.join(', ')}`;
+        return t('stage1.validation.enumError', { options: field.validation.enumOptions.join(', ') });
       }
     }
     
@@ -146,27 +178,27 @@ const Stage1: React.FC<Stage1Props> = ({ onNext }) => {
     
     switch (fieldName) {
       case 'description':
-        return 'Examples: "Grid electricity, Hong Kong", "Natural gas consumption"';
+        return t('stage1.tooltips.description');
       case 'scope':
-        return 'Examples: "Scope 1", "Scope 2", "Scope 3"';
+        return t('stage1.tooltips.scope');
       case 'category':
-        return 'Examples: "Electricity", "Transportation", "Waste"';
+        return t('stage1.tooltips.category');
       case 'location':
-        return 'Examples: "Hong Kong", "United States", "Europe"';
+        return t('stage1.tooltips.location');
       case 'unit':
-        return 'Examples: "kWh", "liters", "kg", "m3"';
+        return t('stage1.tooltips.unit');
       case 'dataSource':
-        return 'Examples: "Utility bill", "Fuel receipt", "Meter reading"';
+        return t('stage1.tooltips.dataSource');
       case 'methodType':
-        return 'Examples: "Volume Based", "Spend Based", "Distance Based", "Mass Based"';
+        return t('stage1.tooltips.methodType');
       case 'co2ePerUnit':
-        return 'Examples: 0.81, 2.5, 0.1 (must be a number >= 0)';
+        return t('stage1.tooltips.co2ePerUnit');
       case 'emissionFactorUnit':
-        return 'Examples: "kg CO2e/kWh", "kg CO2e/liter", "kg CO2e/km"';
+        return t('stage1.tooltips.emissionFactorUnit');
       case 'ghgReportingStandard':
-        return 'Examples: "GHG Protocol", "GRI Standards", "ISO 14064"';
+        return t('stage1.tooltips.ghgReportingStandard');
       case 'sourceOrDisclosureRequirement':
-        return 'Examples: "https://example.com", "Internal calculation", "Supplier data"';
+        return t('stage1.tooltips.sourceOrDisclosureRequirement');
       default:
         return '';
     }
@@ -181,7 +213,7 @@ const Stage1: React.FC<Stage1Props> = ({ onNext }) => {
       if (field.required) {
         const value = formData[field.key as keyof EmissionFactorData];
         if (!value || (typeof value === 'string' && value.trim() === '')) {
-          errors[field.key] = `${field.label} is required`;
+          errors[field.key] = t('stage1.validation.fieldRequired', { fieldName: field.label });
         }
       }
     });
@@ -211,10 +243,10 @@ const Stage1: React.FC<Stage1Props> = ({ onNext }) => {
         sourceOrDisclosureRequirement: '',
       });
       
-      toast.success('Emission factor added successfully!');
+      toast.success(t('stage1.toast.addedSuccessfully'));
     } catch (error) {
       console.error('Error adding emission factor:', error);
-      toast.error(error instanceof Error ? error.message : 'Failed to add emission factor');
+      toast.error(error instanceof Error ? error.message : t('stage1.toast.addFailed'));
     }
   };
 
@@ -225,18 +257,18 @@ const Stage1: React.FC<Stage1Props> = ({ onNext }) => {
 
   const handleUpdate = async (updatedFactor: EmissionFactorData) => {
     if (!updatedFactor._id) {
-      toast.error('Cannot update: Missing emission factor ID');
+      toast.error(t('stage1.toast.cannotUpdateMissingId'));
       return;
     }
 
     setIsLoading(true);
     try {
       await indexedDBService.updateEmissionFactor(updatedFactor as EmissionFactor);
-      toast.success('Emission factor updated successfully');
+      toast.success(t('stage1.toast.updatedSuccessfully'));
       fetchEmissionFactors(); // Refresh the table
     } catch (error) {
       console.error('Error updating emission factor:', error);
-      toast.error(`Failed to update emission factor: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      toast.error(`${t('stage1.toast.updateFailed')}: ${error instanceof Error ? error.message : t('common.unknownError')}`);
     } finally {
       setIsLoading(false);
     }
@@ -250,7 +282,7 @@ const Stage1: React.FC<Stage1Props> = ({ onNext }) => {
 
   const handleBulkDelete = () => {
     if (selectedFactors.size === 0) {
-      toast.error('Please select at least one emission factor to delete');
+      toast.error(t('stage1.toast.selectAtLeastOneToDelete'));
       return;
     }
     setShowBulkDeleteModal(true);
@@ -258,20 +290,20 @@ const Stage1: React.FC<Stage1Props> = ({ onNext }) => {
 
   const confirmDelete = async () => {
     if (!deletingFactor?._id) {
-      toast.error('Cannot delete: Missing emission factor ID');
+      toast.error(t('stage1.toast.cannotDeleteMissingId'));
       return;
     }
 
     setIsDeleting(true);
     try {
       await indexedDBService.deleteEmissionFactor(deletingFactor._id);
-      toast.success('Emission factor deleted successfully');
+      toast.success(t('stage1.toast.deletedSuccessfully'));
       fetchEmissionFactors(); // Refresh the table
       setShowDeleteModal(false);
       setDeletingFactor(null);
     } catch (error) {
       console.error('Error deleting emission factor:', error);
-      toast.error(`Failed to delete emission factor: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      toast.error(`${t('stage1.toast.deleteFailed')}: ${error instanceof Error ? error.message : t('common.unknownError')}`);
     } finally {
       setIsDeleting(false);
     }
@@ -279,7 +311,7 @@ const Stage1: React.FC<Stage1Props> = ({ onNext }) => {
 
   const confirmBulkDelete = async () => {
     if (selectedFactors.size === 0) {
-      toast.error('No emission factors selected for deletion');
+      toast.error(t('stage1.toast.noFactorsSelectedForDeletion'));
       return;
     }
 
@@ -296,20 +328,20 @@ const Stage1: React.FC<Stage1Props> = ({ onNext }) => {
       const failed = results.length - successful;
 
       if (successful > 0) {
-        toast.success(`Successfully deleted ${successful} emission factor${successful > 1 ? 's' : ''}`);
+        toast.success(t('stage1.toast.bulkDeleteSuccess', { count: successful, plural: successful > 1 ? 's' : '' }));
         if (failed > 0) {
-          toast.error(`Failed to delete ${failed} emission factor${failed > 1 ? 's' : ''}`);
+          toast.error(t('stage1.toast.bulkDeleteFailed', { count: failed, plural: failed > 1 ? 's' : '' }));
         }
         fetchEmissionFactors(); // Refresh the table
         setSelectedFactors(new Set()); // Clear selection
       } else {
-        toast.error('Failed to delete any emission factors');
+        toast.error(t('stage1.toast.bulkDeleteAllFailed'));
       }
 
       setShowBulkDeleteModal(false);
     } catch (error) {
       console.error('Error during bulk delete:', error);
-      toast.error(`Failed to delete emission factors: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      toast.error(`${t('stage1.toast.bulkDeleteFailed')}: ${error instanceof Error ? error.message : t('common.unknownError')}`);
     } finally {
       setIsDeleting(false);
     }
@@ -352,27 +384,66 @@ const Stage1: React.FC<Stage1Props> = ({ onNext }) => {
       sourceOrDisclosureRequirement: '',
     });
     setIsEditing(false);
-    setEditingId(null);
     setFieldErrors({}); // Clear errors on reset
+  };
+
+  // Auto-scroll functions
+  const scrollToImportSection = () => {
+    console.log('Auto-scrolling to import section...');
+    if (importSectionRef.current) {
+      importSectionRef.current.scrollIntoView({
+        behavior: 'smooth',
+        block: 'end'
+      });
+      console.log('Scrolled to import section');
+    } else {
+      console.warn('Import section ref not found');
+    }
+  };
+
+  const scrollToSavedFactors = () => {
+    console.log('Auto-scrolling to saved factors table...');
+    if (savedFactorsRef.current) {
+      savedFactorsRef.current.scrollIntoView({
+        behavior: 'smooth',
+        block: 'start'
+      });
+      console.log('Scrolled to saved factors table');
+    } else {
+      console.warn('Saved factors ref not found');
+    }
+  };
+
+  // Enhanced CSV import success handler with auto-scroll
+  const handleCSVImportSuccess = () => {
+    fetchEmissionFactors();
+    // Auto-scroll to saved factors table after successful import
+    setTimeout(() => {
+      scrollToSavedFactors();
+    }, 500); // Small delay to ensure data is loaded
   };
 
   return (
     <div className="stage">
-      <h2 className="stage-title">Import Standard Emission Factors</h2>
+      <h2 className="stage-title">{t('stage1.importTitle')}</h2>
       {/* CSV Import/Export Manager */}
-      <EmissionFactorCSVManager onImportSuccess={fetchEmissionFactors} />
+      <EmissionFactorCSVManager 
+        onImportSuccess={handleCSVImportSuccess} 
+        onCSVLoaded={scrollToImportSection}
+        importSectionRef={importSectionRef}
+      />
 
-      <h1 style={{ textAlign: 'center', marginBottom: '20px' }}>OR</h1>
+      <h1 style={{ textAlign: 'center', marginBottom: '20px' }}>{t('stage1.or')}</h1>
 
-      <h2 className="stage-title">Input Emission Factors</h2>
+      <h2 className="stage-title">{t('stage1.inputTitle')}</h2>
 
       <form onSubmit={handleSubmit} className="emission-form">
         {/* General Section */}
         <div className="form-section">
-          <h3 className="section-title">General Information</h3>
+          <h3 className="section-title">{t('stage1.generalInfoTitle')}</h3>
           <div className="form-grid">
             <div className="form-group">
-              <label htmlFor="description">Description *</label>
+              <label htmlFor="description">{t('stage1.formLabels.description')}</label>
               <input
                 type="text"
                 id="description"
@@ -394,7 +465,7 @@ const Stage1: React.FC<Stage1Props> = ({ onNext }) => {
               )}
             </div>
             <div className="form-group">
-              <label htmlFor="scope">Scope *</label>
+              <label htmlFor="scope">{t('stage1.formLabels.scope')}</label>
               <select
                 id="scope"
                 name="scope"
@@ -405,7 +476,7 @@ const Stage1: React.FC<Stage1Props> = ({ onNext }) => {
                 required
                 className={`form-input ${fieldErrors.scope ? 'form-input-error' : ''}`}
               >
-                <option value="">Select scope</option>
+                <option value="">{t('stage1.selectScope')}</option>
                 {emissionFactorFields.find(f => f.key === 'scope')?.validation?.enumOptions?.map((option) => (
                   <option key={option} value={option}>{option}</option>
                 ))}
@@ -415,12 +486,12 @@ const Stage1: React.FC<Stage1Props> = ({ onNext }) => {
                   {getTooltipContent('scope')}
                 </div>
               )}
-              {fieldErrors.scope && (
-                <div className="form-error-message">{fieldErrors.scope}</div>
-              )}
+                          {fieldErrors.scope && (
+              <div className="form-error-message">{fieldErrors.scope}</div>
+            )}
             </div>
             <div className="form-group">
-              <label htmlFor="category">Category *</label>
+              <label htmlFor="category">{t('stage1.formLabels.category')}</label>
               <input
                 type="text"
                 id="category"
@@ -442,7 +513,7 @@ const Stage1: React.FC<Stage1Props> = ({ onNext }) => {
               )}
             </div>
             <div className="form-group">
-              <label htmlFor="location">Country/Region/Location *</label>
+              <label htmlFor="location">{t('stage1.formLabels.location')}</label>
               <input
                 type="text"
                 id="location"
@@ -464,7 +535,7 @@ const Stage1: React.FC<Stage1Props> = ({ onNext }) => {
               )}
             </div>
             <div className="form-group">
-              <label htmlFor="unit">Unit on Quantity (e.g. kg, kWh, litre, etc.) *</label> 
+              <label htmlFor="unit">{t('stage1.formLabels.unit')}</label> 
               <input
                 type="text"
                 id="unit"
@@ -486,7 +557,7 @@ const Stage1: React.FC<Stage1Props> = ({ onNext }) => {
               )}
             </div>
             <div className="form-group">
-              <label htmlFor="dataSource">Data Source/Collection Method *</label>
+              <label htmlFor="dataSource">{t('stage1.formLabels.dataSource')}</label>
               <input
                 type="text"
                 id="dataSource"
@@ -512,9 +583,9 @@ const Stage1: React.FC<Stage1Props> = ({ onNext }) => {
 
         {/* Calculation Methods Section */}
         <div className="form-section">
-          <h3 className="section-title">Calculation Methods</h3>
+          <h3 className="section-title">{t('stage1.calculationMethodsTitle')}</h3>
           <div className="form-group">
-            <label htmlFor="methodType">Method Type *</label>
+            <label htmlFor="methodType">{t('stage1.formLabels.methodType')}</label>
             <select
               id="methodType"
               name="methodType"
@@ -525,7 +596,7 @@ const Stage1: React.FC<Stage1Props> = ({ onNext }) => {
               required
               className={`form-input ${fieldErrors.methodType ? 'form-input-error' : ''}`}
             >
-              <option value="">Select method type</option>
+              <option value="">{t('stage1.selectMethodType')}</option>
               {emissionFactorFields.find(f => f.key === 'methodType')?.validation?.enumOptions?.map((option) => (
                 <option key={option} value={option}>{option}</option>
               ))}
@@ -543,10 +614,10 @@ const Stage1: React.FC<Stage1Props> = ({ onNext }) => {
 
         {/* Emission Factor & Reference Section */}
         <div className="form-section">
-          <h3 className="section-title">Emission Factor & Reference</h3>
+          <h3 className="section-title">{t('stage1.emissionFactorReferenceTitle')}</h3>
           <div className="form-grid">
             <div className="form-group">
-              <label htmlFor="co2ePerUnit">CO2e per Unit *</label>
+              <label htmlFor="co2ePerUnit">{t('stage1.formLabels.co2ePerUnit')}</label>
               <input
                 type="number"
                 id="co2ePerUnit"
@@ -569,7 +640,7 @@ const Stage1: React.FC<Stage1Props> = ({ onNext }) => {
               )}
             </div>
             <div className="form-group">
-              <label htmlFor="emissionFactorUnit">Emission Factor Unit *</label>
+              <label htmlFor="emissionFactorUnit">{t('stage1.formLabels.emissionFactorUnit')}</label>
               <input
                 type="text"
                 id="emissionFactorUnit"
@@ -591,7 +662,7 @@ const Stage1: React.FC<Stage1Props> = ({ onNext }) => {
               )}
             </div>
             <div className="form-group">
-              <label htmlFor="ghgReportingStandard">GHG Reporting Standard *</label>
+              <label htmlFor="ghgReportingStandard">{t('stage1.formLabels.ghgReportingStandard')}</label>
               {/*
                 To add or change the dropdown options, update the MongoDB collection 'ghg_reporting_standards'.
                 See src/lib/mongodb.ts for seeding logic.
@@ -606,7 +677,7 @@ const Stage1: React.FC<Stage1Props> = ({ onNext }) => {
                 required
                 className={`form-input ${fieldErrors.ghgReportingStandard ? 'form-input-error' : ''}`}
               >
-                <option value="">Select a standard</option>
+                <option value="">{t('stage1.selectStandard')}</option>
                 {ghgStandards.map((standard) => (
                   <option key={standard} value={standard}>{standard}</option>
                 ))}
@@ -621,7 +692,7 @@ const Stage1: React.FC<Stage1Props> = ({ onNext }) => {
               )}
             </div>
             <div className="form-group">
-              <label htmlFor="sourceOrDisclosureRequirement">Source or Disclosure Requirement *</label>
+              <label htmlFor="sourceOrDisclosureRequirement">{t('stage1.formLabels.sourceOrDisclosureRequirement')}</label>
               <input
                 type="text"
                 id="sourceOrDisclosureRequirement"
@@ -632,7 +703,7 @@ const Stage1: React.FC<Stage1Props> = ({ onNext }) => {
                 onBlur={() => handleFieldBlur('sourceOrDisclosureRequirement')}
                 required
                 className={`form-input ${fieldErrors.sourceOrDisclosureRequirement ? 'form-input-error' : ''}`}
-                placeholder="Enter a weblink or remarks"
+                placeholder={t('stage1.placeholders.sourceOrDisclosureRequirement')}
               />
               {showTooltips.sourceOrDisclosureRequirement && (
                 <div className="form-tooltip">
@@ -648,19 +719,19 @@ const Stage1: React.FC<Stage1Props> = ({ onNext }) => {
 
         <div className="form-actions">
           <button type="submit" className="btn btn-primary" disabled={isLoading}>
-            {isLoading ? 'Saving...' : (isEditing ? 'Update' : 'Add')}
+            {isLoading ? t('stage1.saving') : (isEditing ? t('stage1.update') : t('stage1.add'))}
           </button>
           {isEditing && (
             <button type="button" onClick={resetForm} className="btn btn-secondary">
-              Cancel
+              {t('stage1.cancel')}
             </button>
           )}
         </div>
       </form>
 
       {/* Data Table */}
-      <div className="data-section">
-        <h3 className="section-title">Saved Emission Factors</h3>
+      <div className="data-section" ref={savedFactorsRef}>
+        <h3 className="section-title">{t('stage1.savedEmissionFactorsTitle')}</h3>
         
         {/* Use unified table component */}
         {emissionFactors.length > 0 && (
@@ -680,14 +751,14 @@ const Stage1: React.FC<Stage1Props> = ({ onNext }) => {
         
         {emissionFactors.length === 0 && (
           <div className="no-data">
-            <p>No emission factors added yet. Add your first emission factor above or import from CSV.</p>
+            <p>{t('stage1.noEmissionFactorsMessage')}</p>
           </div>
         )}
       </div>
 
       <div className="stage-actions">
         <button onClick={onNext} className="btn btn-primary">
-          Next: Reporting Activity Data
+          {t('stage1.nextButton')}
         </button>
       </div>
 
@@ -711,10 +782,10 @@ const Stage1: React.FC<Stage1Props> = ({ onNext }) => {
           setDeletingFactor(null);
         }}
         onConfirm={confirmDelete}
-        title="Delete Emission Factor"
-        message="Are you sure you want to delete this emission factor? This action cannot be undone."
-        confirmText="Delete"
-        cancelText="Cancel"
+        title={t('stage1.deleteEmissionFactorTitle')}
+        message={t('stage1.deleteEmissionFactorMessage')}
+        confirmText={t('stage1.delete')}
+        cancelText={t('stage1.cancel')}
       />
 
       {/* Bulk Delete Confirmation Modal */}
@@ -722,10 +793,10 @@ const Stage1: React.FC<Stage1Props> = ({ onNext }) => {
         isOpen={showBulkDeleteModal}
         onClose={() => setShowBulkDeleteModal(false)}
         onConfirm={confirmBulkDelete}
-        title="Bulk Delete Emission Factors"
-        message="Are you sure you want to delete the selected emission factors? This action cannot be undone."
-        confirmText="Delete All"
-        cancelText="Cancel"
+        title={t('stage1.bulkDeleteEmissionFactorsTitle')}
+        message={t('stage1.bulkDeleteEmissionFactorsMessage')}
+        confirmText={t('stage1.deleteAll')}
+        cancelText={t('stage1.cancel')}
         isBulkDelete={true}
         selectedCount={selectedFactors.size}
       />

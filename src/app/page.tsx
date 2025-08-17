@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { Toaster } from 'react-hot-toast';
+import { useTranslations } from 'next-intl';
 import Logo from '@/components/Logo';
 import Stepper from '@/components/Stepper';
 import Stage1 from '@/components/Stage1';
@@ -12,6 +13,7 @@ import SessionManager from '@/lib/sessionManager';
 import indexedDBService from '@/lib/indexedDB';
 
 export default function Home() {
+  const t = useTranslations();
   const [currentStage, setCurrentStage] = useState(1);
   const [sessionManager, setSessionManager] = useState<SessionManager | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -111,7 +113,7 @@ export default function Home() {
         {/* Data Retention Notice */}
         <div className="data-retention-notice">
           <p>
-            <strong>Note:</strong> Your input data is only kept for {inactivityMinutes} minutes unless you choose to keep it longer. All records will be deleted after {modalMinutes} minutes of inactivity on the retention popup.
+            <strong>{t('dataRetention.note')}</strong> {t('dataRetention.description', { inactivityMinutes, modalMinutes })}
           </p>
         </div>
       </div>

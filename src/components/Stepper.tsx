@@ -1,4 +1,5 @@
 import React from 'react';
+import { useTranslations } from 'next-intl';
 
 interface StepperProps {
   currentStage: number;
@@ -6,11 +7,15 @@ interface StepperProps {
 }
 
 const Stepper: React.FC<StepperProps> = ({ currentStage, onStageClick }) => {
-  const stages = [
-    { id: 1, title: 'Input Emission Factors', description: 'Add emission factor data' },
-    { id: 2, title: 'Reporting Activity Data', description: 'Enter activity information' },
-    { id: 3, title: 'Report', description: 'View and export reports' }
+  const t = useTranslations();
+  
+  const getStages = () => [
+    { id: 1, title: t('navigation.stage1'), description: t('stage1.description') },
+    { id: 2, title: t('navigation.stage2'), description: t('stage2.description') },
+    { id: 3, title: t('navigation.stage3'), description: t('stage3.description') }
   ];
+
+  const stages = getStages();
 
   return (
     <div className="stepper">

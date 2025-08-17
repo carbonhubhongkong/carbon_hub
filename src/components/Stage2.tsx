@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import * as toastModule from 'react-hot-toast';
+import { useTranslations } from 'next-intl';
 import EditActivityModal from './EditActivityModal';
 import DeleteConfirmationModal from './DeleteConfirmationModal';
 import { FaEdit, FaTrash } from 'react-icons/fa';
@@ -16,6 +17,7 @@ interface Stage2Props {
 // Using types from IndexedDB service
 
 const Stage2: React.FC<Stage2Props> = ({ onNext }) => {
+  const t = useTranslations();
   const [formData, setFormData] = useState<ReportingActivity>({
     reportingPeriodStart: '',
     reportingPeriodEnd: '',
@@ -68,7 +70,7 @@ const Stage2: React.FC<Stage2Props> = ({ onNext }) => {
       } catch (error) {
         console.error('Error loading data:', error);
         setConnectionStatus('error');
-        toast.error('Failed to load data');
+        toast.error(t('stage2.toast.loadDataFailed'));
         setEmissionFactors([]);
         setActivities([]);
       } finally {
@@ -736,12 +738,12 @@ const Stage2: React.FC<Stage2Props> = ({ onNext }) => {
 
   return (
     <div className="stage">
-      <h2 className="stage-title">Reporting Activity Data</h2>
+      <h2 className="stage-title">{t('stage2.title')}</h2>
       
       <form onSubmit={handleSubmit} className="activity-form">
         <div className="form-grid">
           <div className="form-group">
-            <label htmlFor="reportingPeriodStart">Reporting Period Start Date *</label>
+            <label htmlFor="reportingPeriodStart">{t('stage2.formLabels.reportingPeriodStart')} *</label>
             <input
               type="date"
               id="reportingPeriodStart"
@@ -753,7 +755,7 @@ const Stage2: React.FC<Stage2Props> = ({ onNext }) => {
             />
           </div>
           <div className="form-group">
-            <label htmlFor="reportingPeriodEnd">Reporting Period End Date *</label>
+            <label htmlFor="reportingPeriodEnd">{t('stage2.formLabels.reportingPeriodEnd')} *</label>
             <input
               type="date"
               id="reportingPeriodEnd"
@@ -765,7 +767,7 @@ const Stage2: React.FC<Stage2Props> = ({ onNext }) => {
             />
           </div>
           <div className="form-group">
-            <label htmlFor="scope">Scope *</label>
+            <label htmlFor="scope">{t('stage2.formLabels.scope')} *</label>
             <select
               id="scope"
               name="scope"
@@ -774,14 +776,14 @@ const Stage2: React.FC<Stage2Props> = ({ onNext }) => {
               required
               className="form-input"
             >
-              <option value="">Select scope</option>
+              <option value="">{t('stage2.placeholders.scope')}</option>
               <option value="Scope 1">Scope 1</option>
               <option value="Scope 2">Scope 2</option>
               <option value="Scope 3">Scope 3</option>
             </select>
           </div>
           <div className="form-group">
-            <label htmlFor="category">Category *</label>
+            <label htmlFor="category">{t('stage2.formLabels.category')} *</label>
             <select
               id="category"
               name="category"
@@ -790,7 +792,7 @@ const Stage2: React.FC<Stage2Props> = ({ onNext }) => {
               required
               className="form-input"
             >
-              <option value="">Select category</option>
+              <option value="">{t('stage2.placeholders.category')}</option>
               {categoryOptions.map((category) => (
                 <option key={category} value={category}>
                   {category}
@@ -799,7 +801,7 @@ const Stage2: React.FC<Stage2Props> = ({ onNext }) => {
             </select>
           </div>
           <div className="form-group">
-            <label htmlFor="activityName">Activity Name *</label>
+            <label htmlFor="activityName">{t('stage2.formLabels.activityName')} *</label>
             <input
               type="text"
               id="activityName"
@@ -808,11 +810,11 @@ const Stage2: React.FC<Stage2Props> = ({ onNext }) => {
               onChange={handleInputChange}
               required
               className="form-input"
-              placeholder="e.g., Office Electricity Consumption"
+              placeholder={t('stage2.placeholders.activityName')}
             />
           </div>
           <div className="form-group">
-            <label htmlFor="location">Country/Region/Location *</label>
+            <label htmlFor="location">{t('stage2.formLabels.location')} *</label>
             <select
               id="location"
               name="location"
@@ -821,7 +823,7 @@ const Stage2: React.FC<Stage2Props> = ({ onNext }) => {
               required
               className="form-input"
             >
-              <option value="">Select location</option>
+              <option value="">{t('stage2.placeholders.location')}</option>
               {locationOptions.map((location) => (
                 <option key={location} value={location}>
                   {location}
@@ -830,7 +832,7 @@ const Stage2: React.FC<Stage2Props> = ({ onNext }) => {
             </select>
           </div>
           <div className="form-group">
-            <label htmlFor="quantity">Quantity *</label>
+            <label htmlFor="quantity">{t('stage2.formLabels.quantity')} *</label>
             <input
               type="number"
               id="quantity"
@@ -840,11 +842,11 @@ const Stage2: React.FC<Stage2Props> = ({ onNext }) => {
               step="0.01"
               required
               className="form-input"
-              placeholder="e.g., 1000"
+              placeholder={t('stage2.placeholders.quantity')}
             />
           </div>
           <div className="form-group">
-            <label htmlFor="emissionFactorId">Emission Factor *</label>
+            <label htmlFor="emissionFactorId">{t('stage2.formLabels.emissionFactorId')} *</label>
             <select
               id="emissionFactorId"
               name="emissionFactorId"
@@ -854,7 +856,7 @@ const Stage2: React.FC<Stage2Props> = ({ onNext }) => {
               className="form-input"
               disabled={!formData.scope || !formData.location || !formData.category}
             >
-              <option value="">Select an emission factor</option>
+              <option value="">{t('stage2.placeholders.emissionFactorId')}</option>
               {filteredEmissionFactors.map((factor) => {
                 console.log(`Stage2: Rendering option for factor:`, factor);
                 console.log(`Stage2: Factor ID: ${factor._id}, type: ${typeof factor._id}`);
@@ -867,14 +869,14 @@ const Stage2: React.FC<Stage2Props> = ({ onNext }) => {
             </select>
             {(!formData.scope || !formData.location || !formData.category) && (
               <small className="form-help">
-                Please select scope, location, and category first to see available emission factors
+                {t('stage2.validation.selectScopeLocationCategory')}
               </small>
             )}
           </div>
         </div>
 
         <div className="form-group">
-          <label htmlFor="remarks">Remarks</label>
+          <label htmlFor="remarks">{t('stage2.formLabels.remarks')}</label>
           <textarea
             id="remarks"
             name="remarks"
@@ -882,13 +884,13 @@ const Stage2: React.FC<Stage2Props> = ({ onNext }) => {
             onChange={handleInputChange}
             className="form-input"
             rows={3}
-            placeholder="Additional notes or comments..."
+                          placeholder={t('stage2.placeholders.remarks')}
           />
         </div>
 
         <div className="form-actions">
           <button type="submit" className="btn btn-primary" disabled={isLoading}>
-            {isLoading ? 'Saving...' : 'Save'}
+            {isLoading ? t('stage2.saving') : t('stage2.save')}
           </button>
         </div>
       </form>
@@ -896,7 +898,7 @@ const Stage2: React.FC<Stage2Props> = ({ onNext }) => {
       {/* Data Table */}
       <div className="data-section">
         <h3 className="section-title">
-          Saved Activities
+          {t('stage2.savedActivities')}
           {connectionStatus === 'fallback' && (
             <span className="connection-status fallback">
               📱 Using Local Storage
@@ -944,7 +946,7 @@ const Stage2: React.FC<Stage2Props> = ({ onNext }) => {
                     return (
                       <tr key={activity._id} style={!factorExists ? { backgroundColor: '#fff3cd' } : {}}>
                         <td>{activity.activityName}</td>
-                        <td>{activity.reportingPeriodStart} to {activity.reportingPeriodEnd}</td>
+                        <td>{activity.reportingPeriodStart} {t('stage2.dateRangeSeparator')} {activity.reportingPeriodEnd}</td>
                         <td>{activity.scope}</td>
                         <td>{activity.category}</td>
                         <td>{activity.location}</td>
@@ -973,42 +975,42 @@ const Stage2: React.FC<Stage2Props> = ({ onNext }) => {
                             if (emissions !== null) {
                               // Use stored emission factor data for unit if available
                               const unit = activity.emissionFactorData?.emissionFactorUnit || getEmissionFactorUnit(activity.emissionFactorId);
-                              return `${emissions.toFixed(2)} ${unit || 'kg CO2e'}`;
+                              return `${emissions.toFixed(2)} ${unit || t('stage2.defaultUnit')}`;
                             }
                             if (!factorExists && !activity.emissionFactorData) {
-                              return <span style={{ color: '#dc3545' }}>Cannot calculate - EF missing</span>;
+                              return <span style={{ color: '#dc3545' }}>{t('stage2.cannotCalculateEFMissing')}</span>;
                             }
-                            return 'N/A';
+                            return t('common.noData');
                           })()}
                         </td>
                         <td>
-                          {activity.remarks || '-'}
+                          {activity.remarks || t('common.noData')}
                         </td>
                         <td>
                           <div className="action-buttons">
                             <button
                               onClick={() => handleEdit(activity)}
                               className="btn btn-small btn-secondary"
-                              title="Edit activity"
+                              title={t('common.edit')}
                             >
-                              <FaEdit /> Edit
+                              <FaEdit /> {t('common.edit')}
                             </button>
                             <button
                               onClick={() => handleDelete(activity)}
                               className="btn btn-small btn-danger"
-                              title="Delete activity"
+                              title={t('common.delete')}
                               disabled={isDeleting}
                             >
-                              <FaTrash /> Delete
+                              <FaTrash /> {t('common.delete')}
                             </button>
                             {!factorExists && (
                               <button
                                 onClick={() => createMissingEmissionFactor(activity)}
                                 className="btn btn-small btn-primary"
                                 style={{ fontSize: '10px', padding: '2px 4px' }}
-                                title="Create missing emission factor"
+                                title={t('stage2.createMissingEmissionFactor')}
                               >
-                                Create EF
+                                {t('stage2.createMissingEmissionFactor')}
                               </button>
                             )}
                           </div>
@@ -1020,10 +1022,10 @@ const Stage2: React.FC<Stage2Props> = ({ onNext }) => {
               </table>
             ) : (
               <div className="no-data">
-                <p>No activities added yet. Add your first activity above.</p>
+                <p>{t('stage2.noActivitiesMessage')}</p>
                 {connectionStatus === 'fallback' && (
                   <p className="fallback-note">
-                    <small>Note: Data is stored locally. MongoDB connection is unavailable.</small>
+                    <small>{t('stage2.connectionStatus.fallback')}</small>
                   </p>
                 )}
               </div>
@@ -1034,7 +1036,7 @@ const Stage2: React.FC<Stage2Props> = ({ onNext }) => {
 
       <div className="stage-actions">
         <button onClick={onNext} className="btn btn-primary">
-          Next: Report
+          {t('stage2.nextButton')}
         </button>
       </div>
 
@@ -1058,10 +1060,10 @@ const Stage2: React.FC<Stage2Props> = ({ onNext }) => {
           setDeletingActivity(null);
         }}
         onConfirm={confirmDelete}
-        title="Delete Activity"
-        message={`Are you sure you want to delete "${deletingActivity?.activityName}"? This action cannot be undone.`}
-        confirmText="Delete"
-        cancelText="Cancel"
+        title={t('stage2.deleteModal.title')}
+        message={t('stage2.deleteModal.message', { activityName: deletingActivity?.activityName || '' })}
+        confirmText={t('stage2.deleteModal.confirmText')}
+        cancelText={t('stage2.deleteModal.cancelText')}
       />
     </div>
   );

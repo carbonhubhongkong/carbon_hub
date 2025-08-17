@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useEffect, useRef } from 'react';
+import { useTranslations } from 'next-intl';
 
 interface DeleteConfirmationModalProps {
   isOpen: boolean;
@@ -25,6 +26,7 @@ const DeleteConfirmationModal: React.FC<DeleteConfirmationModalProps> = ({
   isBulkDelete = false,
   selectedCount = 0
 }) => {
+  const t = useTranslations();
   const modalRef = useRef<HTMLDivElement>(null);
   const confirmButtonRef = useRef<HTMLButtonElement>(null);
 
@@ -68,7 +70,7 @@ const DeleteConfirmationModal: React.FC<DeleteConfirmationModalProps> = ({
         <div className="modal-body">
           <p className="delete-message">
             {isBulkDelete 
-              ? `Are you sure you want to delete ${selectedCount} selected emission factor${selectedCount > 1 ? 's' : ''}? This action cannot be undone.`
+              ? t('modals.deleteConfirmation.bulkDeleteMessage', { count: selectedCount, plural: selectedCount > 1 ? 's' : '' })
               : message
             }
           </p>
