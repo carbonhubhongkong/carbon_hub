@@ -59,9 +59,9 @@
     "unknownError": "未知错误"
   },
   "navigation": {
-    "stage1": "第一阶段",
-    "stage2": "第二阶段", 
-    "stage3": "第三阶段"
+    "stage1": "第一部份",
+    "stage2": "第二部份", 
+    "stage3": "第三部份"
   },
   "logo": {
     "alt": "碳足迹中心标志"
@@ -421,7 +421,7 @@
       "cancelText": "取消"
     },
     "createMissingEmissionFactor": "创建排放因子",
-    "cannotCalculateEFMissing": "无法计算 - 排放因子缺失",
+    "cannotCalculateEFMissing": "无法计算 - 缺少排放因子",
     "defaultUnit": "kg CO2e",
     "dateRangeSeparator": "至",
     "toast": {
