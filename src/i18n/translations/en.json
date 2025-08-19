@@ -95,6 +95,7 @@
     "validationFailed": "CSV validation failed",
     "importSuccess": "Successfully imported {count} emission factor{plural}",
     "importFailed": "Failed to import emission factors",
+    "importResult": "{added} added, {failed} failed.",
     "fileTooLarge": "File is too large. Maximum size is 5MB",
     "invalidFileType": "Invalid file type. Please upload a CSV file",
     "processingFile": "Processing file...",
@@ -102,6 +103,12 @@
     "importProgress": "Importing {current} of {total}...",
     "failedToDeleteSelectedRows": "Failed to delete selected rows",
     "rowHasErrors": "Row has errors",
+    "importInstructions": {
+      "title": "Note:",
+      "step1": "Please use a CSV file with the same headers and columns as the downloadable CSV template.",
+      "step2": "Make sure the first row of your CSV contains the column headers, and all following rows contain your data.",
+      "step3": "Do **not** refresh or reload this page before clicking the \"Import\" button, or your uploaded data may be lost."
+    },
     "columnHeaders": {
       "description": "Description",
       "scope": "Scope",

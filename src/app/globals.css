@@ -917,17 +917,56 @@ select {
 }
 
 .csv-info {
-  background: #f8f9fa;
-  border: 1px solid var(--border);
-  border-radius: 6px;
-  padding: 16px;
+  background: #fff3e0;
+  border: 1px solid var(--accent);
+  border-radius: 8px;
+  padding: 20px;
   margin-bottom: 20px;
+  box-shadow: 0 2px 4px rgba(33, 150, 243, 0.1);
+}
+
+.csv-info-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.csv-info-icon {
+  font-size: 1.2rem;
+  color: #2196f3;
+
 }
 
 .csv-info h4 {
-  margin: 0 0 12px 0;
+  margin: 0;
   color: var(--text-primary);
   font-size: 1.1rem;
+  font-weight: 700;
+}
+
+.csv-info-content {
+  color: var(--text-primary);
+  font-size: 0.95rem;
+  line-height: 1.6;
+}
+
+.csv-info-content ol {
+  margin: 0;
+  padding-left: 20px;
+}
+
+.csv-info-content li {
+  margin-bottom: 8px;
+}
+
+.csv-info-content li:last-child {
+  margin-bottom: 0;
+}
+
+.csv-info-content strong {
+  color: #d32f2f;
+  font-weight: 700;
 }
 
 .csv-info p {

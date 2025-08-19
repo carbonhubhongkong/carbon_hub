@@ -95,6 +95,7 @@
     "validationFailed": "CSV 验证失败",
     "importSuccess": "成功导入 {count} 个排放因子",
     "importFailed": "导入排放因子失败",
+    "importResult": "成功 {added} 个，失败 {failed} 个。",
     "fileTooLarge": "文件太大。最大大小为 5MB",
     "invalidFileType": "无效的文件类型。请上传 CSV 文件",
     "processingFile": "处理文件中...",
@@ -102,6 +103,12 @@
     "importProgress": "导入中 {current}/{total}...",
     "failedToDeleteSelectedRows": "删除选定行失败",
     "rowHasErrors": "行有错误",
+    "importInstructions": {
+      "title": "注意：",
+      "step1": "请使用与可下载的 CSV 模板具有相同标题和列的 CSV 文件。",
+      "step2": "确保您的 CSV 第一行包含列标题，所有后续行包含您的数据。",
+      "step3": "在点击\"导入\"按钮之前，请**不要**刷新或重新加载此页面，否则您上传的数据可能会丢失。"
+    },
     "columnHeaders": {
       "description": "描述",
       "scope": "范围",

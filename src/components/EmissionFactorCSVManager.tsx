@@ -886,18 +886,21 @@ const EmissionFactorCSVManager: React.FC<EmissionFactorCSVManagerProps> = ({ onI
       </div>
       {errorMsg && <div className="csv-error">{errorMsg}</div>}
       
-      {/* CSV Structure Information */}
+      {/* CSV Import Instructions */}
       <div className="csv-info">
-        <h4>{t('csvManager.expectedStructure')}</h4>
-        <p>{t('csvManager.structureDescription')}</p>
-        <div className="csv-columns">
-          {emissionFactorFields.map((field, index) => (
-            <span key={field.key} className="csv-column">
-              {index + 1}. {field.label}
-            </span>
-          ))}
+        <div className="csv-info-header">
+          {/* <span className="csv-info-icon">ℹ️</span> */}
+          <h4>{t('csvManager.importInstructions.title')}</h4>
         </div>
-        <p><strong>{t('common.note')}:</strong> {t('csvManager.structureNote')}</p>
+        <div className="csv-info-content">
+          <ol>
+            <li>{t('csvManager.importInstructions.step1')}</li>
+            <li>{t('csvManager.importInstructions.step2')}</li>
+            <li dangerouslySetInnerHTML={{ 
+              __html: t('csvManager.importInstructions.step3').replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+            }} />
+          </ol>
+        </div>
       </div>
       
       {/* Use unified table component */}
@@ -947,7 +950,10 @@ const EmissionFactorCSVManager: React.FC<EmissionFactorCSVManagerProps> = ({ onI
           {importResult && (
             <div className="csv-import-result">
               <FaCheck className="csv-success" />
-              {importResult.added} added, {importResult.failed} failed.
+              {t('csvManager.importResult', { 
+                added: importResult.added, 
+                failed: importResult.failed 
+              })}
             </div>
           )}
         </div>

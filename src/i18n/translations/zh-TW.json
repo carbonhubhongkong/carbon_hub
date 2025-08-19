@@ -94,7 +94,8 @@
     "parseError": "解析 CSV 檔案時發生錯誤",
     "validationFailed": "CSV 驗證失敗",
     "importSuccess": "成功匯入 {count} 個排放系數",
-    "importFailed": "匯入排放系數失敗",
+    "importFailed": "匯入排放系數失敗",
+    "importResult": "成功 {added} 個，失敗 {failed} 個。",
     "fileTooLarge": "檔案太大。最大大小為 5MB",
     "invalidFileType": "無效的檔案類型。請上傳 CSV 檔案",
     "processingFile": "處理檔案中...",
@@ -102,6 +103,12 @@
     "importProgress": "匯入中 {current}/{total}...",
     "failedToDeleteSelectedRows": "刪除選定行失敗",
     "rowHasErrors": "行有錯誤",
+    "importInstructions": {
+      "title": "注意：",
+      "step1": "請使用與可下載的 CSV 範本具有相同標題和欄的 CSV 檔案。",
+      "step2": "確保您的 CSV 第一行包含欄標題，所有後續行包含您的資料。",
+      "step3": "在點擊「匯入」按鈕之前，請**不要**重新整理或重新載入此頁面，否則您上傳的資料可能會遺失。"
+    },
     "columnHeaders": {
       "description": "描述",
       "scope": "範圍",
