@@ -1,5 +1,4 @@
 // IndexedDB service layer for client-side data storage
-// Replaces MongoDB functionality with browser-based storage
 
 interface ReportingActivity {
   _id?: string;

@@ -190,13 +190,11 @@ For issues and questions:
 - Review the troubleshooting section above
 - Create an issue in the repository
 
-## Migration Notes
+## Notes
 
-This application has been migrated from a MongoDB backend to a client-side IndexedDB architecture. The migration provides:
+This application has a client-side IndexedDB architecture, it provides:
 
 - **Offline functionality**: No internet connection required
 - **Faster performance**: No network latency
 - **Data privacy**: All data stays on your device
 - **Simplified deployment**: No backend server needed
-
-For migration details, see [MIGRATION_GUIDE.md](MIGRATION_GUIDE.md).

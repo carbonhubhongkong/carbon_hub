@@ -256,17 +256,6 @@ When reporting issues, include:
 - Steps to reproduce
 - Expected vs actual behavior
 
-## Migration from MongoDB
-
-If you're migrating from the previous MongoDB version:
-
-1. **Export existing data** from MongoDB
-2. **Convert to CSV format** if needed
-3. **Import into new application** using Stage 1
-4. **Verify data integrity** before deleting old system
-
-For detailed migration instructions, see [MIGRATION_GUIDE.md](MIGRATION_GUIDE.md).
-
 ## Conclusion
 
 Carbon Hub is designed to be simple to set up and use. The client-side architecture eliminates the need for complex backend infrastructure while providing robust data management capabilities.
