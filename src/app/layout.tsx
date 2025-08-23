@@ -18,14 +18,17 @@ export const viewport: Viewport = {
   initialScale: 1,
 };
 
+// Get base path for GitHub Pages
+const basePath = process.env.NODE_ENV === "production" ? "/carbon_hub" : "";
+
 export const metadata: Metadata = {
   title: "Carbon Hub",
   description: "A platform for calculating and managing carbon emissions",
-  manifest: "/manifest.json",
+  manifest: `${basePath}/manifest.json`,
   icons: {
-    icon: "/carbon-hub-favicon.ico",
-    shortcut: "/carbon-hub-favicon.ico",
-    apple: "/carbon-hub-favicon.ico",
+    icon: `${basePath}/carbon-hub-favicon.ico`,
+    shortcut: `${basePath}/carbon-hub-favicon.ico`,
+    apple: `${basePath}/carbon-hub-favicon.ico`,
   },
 };
 
@@ -37,10 +40,10 @@ export default function RootLayout({
   return (
     <html lang="en">
       <head>
-        <link rel="icon" type="image/x-icon" href="/carbon-hub-favicon.ico" />
-        <link rel="shortcut icon" type="image/x-icon" href="/carbon-hub-favicon.ico" />
-        <link rel="apple-touch-icon" type="image/x-icon" href="/carbon-hub-favicon.ico" />
-        <link rel="manifest" href="/manifest.json" />
+        <link rel="icon" type="image/x-icon" href={`${basePath}/carbon-hub-favicon.ico`} />
+        <link rel="shortcut icon" type="image/x-icon" href={`${basePath}/carbon-hub-favicon.ico`} />
+        <link rel="apple-touch-icon" type="image/x-icon" href={`${basePath}/carbon-hub-favicon.ico`} />
+        <link rel="manifest" href={`${basePath}/manifest.json`} />
       </head>
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}

@@ -14,6 +14,7 @@ const nextConfig: NextConfig = {
   typescript: {
     ignoreBuildErrors: true,
   },
+  assetPrefix: process.env.NODE_ENV === "production" ? "/carbon_hub" : "",
 };
 
 export default nextConfig;
