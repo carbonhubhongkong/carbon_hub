@@ -6,7 +6,11 @@
     "dev": "next dev --turbopack",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "export": "next build",
+    "deploy": "npm run build && touch out/.nojekyll && cp public/404.html out/",
+    "deploy:win": "npm run build && echo. > out\\.nojekyll && copy public\\404.html out\\",
+    "preview": "npx serve out"
   },
   "dependencies": {
     "chart.js": "^4.5.0",
@@ -40,5 +44,5 @@
   "bugs": {
     "url": "https://github.com/49fenixng94/carbon_hub/issues"
   },
-  "homepage": "https://github.com/49fenixng94/carbon_hub#readme"
+  "homepage": "https://49fenixng94.github.io/carbon_hub"
 }
