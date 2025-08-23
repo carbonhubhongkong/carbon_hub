@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { I18nProvider } from "@/i18n/provider";
@@ -13,9 +13,20 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+};
+
 export const metadata: Metadata = {
   title: "Carbon Hub",
   description: "A platform for calculating and managing carbon emissions",
+  manifest: "/manifest.json",
+  icons: {
+    icon: "/carbon-hub-favicon.ico",
+    shortcut: "/carbon-hub-favicon.ico",
+    apple: "/carbon-hub-favicon.ico",
+  },
 };
 
 export default function RootLayout({
@@ -25,6 +36,12 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
+      <head>
+        <link rel="icon" type="image/x-icon" href="/carbon-hub-favicon.ico" />
+        <link rel="shortcut icon" type="image/x-icon" href="/carbon-hub-favicon.ico" />
+        <link rel="apple-touch-icon" type="image/x-icon" href="/carbon-hub-favicon.ico" />
+        <link rel="manifest" href="/manifest.json" />
+      </head>
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >

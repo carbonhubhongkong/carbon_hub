@@ -1,0 +1,16 @@
+{
+  "name": "Carbon Hub",
+  "short_name": "Carbon Hub",
+  "description": "A platform for calculating and managing carbon emissions",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#000000",
+  "icons": [
+    {
+      "src": "/carbon-hub-favicon.ico",
+      "sizes": "32x32",
+      "type": "image/x-icon"
+    }
+  ]
+}
