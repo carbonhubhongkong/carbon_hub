@@ -212,7 +212,7 @@ const EmissionFactorCSVManager: React.FC<EmissionFactorCSVManagerProps> = ({ onI
   const { locale } = useI18n();
   
   // Force re-render when locale changes to ensure immediate translation updates
-  const [forceUpdate, setForceUpdate] = useState(0);
+  const [, setForceUpdate] = useState(0);
   
   const [csvRows, setCsvRows] = useState<EmissionFactorData[]>([]);
   const [selectedRows, setSelectedRows] = useState<Set<number>>(new Set());
@@ -229,6 +229,15 @@ const EmissionFactorCSVManager: React.FC<EmissionFactorCSVManagerProps> = ({ onI
   const [editingFactor, setEditingFactor] = useState<EmissionFactorData | null>(null);
   
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Ensure file input is properly initialized
+  useEffect(() => {
+    if (fileInputRef.current) {
+      // Ensure the file input has the correct attributes
+      fileInputRef.current.setAttribute('accept', '.csv,text/csv');
+      fileInputRef.current.setAttribute('type', 'file');
+    }
+  }, []);
 
   // Monitor changes in csvRows and ensure validation state is consistent
   React.useEffect(() => {
@@ -272,19 +281,21 @@ const EmissionFactorCSVManager: React.FC<EmissionFactorCSVManagerProps> = ({ onI
   // Update validation errors when language changes
   useEffect(() => {
     if (Object.keys(rowErrors).length > 0 && csvRows.length > 0) {
-      // Re-validate all rows with current language
-      const updatedErrors: Record<number, Record<string, string>> = {};
-      Object.keys(rowErrors).forEach(rowIndexStr => {
-        const rowIndex = parseInt(rowIndexStr);
-        if (rowIndex >= 0 && rowIndex < csvRows.length) {
-          const row = csvRows[rowIndex];
-          const rowErrors = validateRow(row);
-          if (Object.keys(rowErrors).length > 0) {
-            updatedErrors[rowIndex] = rowErrors;
+              // Re-validate all rows with current language
+        const updatedErrors: Record<number, Record<string, string>> = {};
+        Object.keys(rowErrors).forEach(rowIndexStr => {
+          const rowIndex = parseInt(rowIndexStr);
+          if (rowIndex >= 0 && rowIndex < csvRows.length) {
+            const row = csvRows[rowIndex];
+            const rowValidationErrors = validateRow(row);
+            if (Object.keys(rowValidationErrors).length > 0) {
+              updatedErrors[rowIndex] = rowValidationErrors;
+            }
           }
+        });
+        if (Object.keys(updatedErrors).length > 0) {
+          setRowErrors(updatedErrors);
         }
-      });
-      setRowErrors(updatedErrors);
     }
   }, [locale, t]); // Dependency on both locale and translation function
 
@@ -299,10 +310,70 @@ const EmissionFactorCSVManager: React.FC<EmissionFactorCSVManagerProps> = ({ onI
     window.URL.revokeObjectURL(url);
   };
 
+  const triggerFileInput = () => {
+    if (fileInputRef.current) {
+      try {
+        // Ensure the file input is properly configured
+        fileInputRef.current.setAttribute('accept', '.csv,text/csv');
+        fileInputRef.current.setAttribute('type', 'file');
+        
+        // Trigger the click
+        fileInputRef.current.click();
+      } catch (error) {
+        console.error('Error triggering file input:', error);
+        // Fallback: create a temporary file input
+        createTemporaryFileInput();
+      }
+    } else {
+      console.error('File input ref is null');
+      // Fallback: create a temporary file input
+      createTemporaryFileInput();
+    }
+  };
+
+  // Fallback: create a temporary file input if the main one fails
+  const createTemporaryFileInput = () => {
+    try {
+      const tempInput = document.createElement('input');
+      tempInput.type = 'file';
+      tempInput.accept = '.csv,text/csv';
+      tempInput.style.display = 'none';
+      
+      // Add event listeners
+      tempInput.addEventListener('change', (e) => {
+        const target = e.target as HTMLInputElement;
+        if (target.files && target.files.length > 0) {
+          const file = target.files[0];
+          parseCSV(file);
+        }
+        // Clean up
+        document.body.removeChild(tempInput);
+      });
+      
+      // Add to DOM and trigger
+      document.body.appendChild(tempInput);
+      tempInput.click();
+    } catch (error) {
+      console.error('Error creating temporary file input:', error);
+    }
+  };
+
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
       parseCSV(file);
+      // Reset the input value to allow selecting the same file again
+      e.target.value = '';
+    }
+  };
+
+  // Fallback file input handler using a different approach
+  const handleFileInput = (e: React.FormEvent<HTMLInputElement>) => {
+    const target = e.target as HTMLInputElement;
+    if (target.files && target.files.length > 0) {
+      const file = target.files[0];
+      parseCSV(file);
+      target.value = '';
     }
   };
 
@@ -372,7 +443,6 @@ const EmissionFactorCSVManager: React.FC<EmissionFactorCSVManagerProps> = ({ onI
         
         // Notify parent that CSV data is loaded for auto-scroll
         if (onCSVLoaded) {
-          console.log('CSV data loaded, triggering onCSVLoaded callback...');
           // Add a small delay to ensure DOM is updated
           setTimeout(() => {
             onCSVLoaded();
@@ -619,40 +689,7 @@ const EmissionFactorCSVManager: React.FC<EmissionFactorCSVManagerProps> = ({ onI
     return !hasValidErrors && hasRows && isNotImporting;
   };
 
-  // Debug function to refresh validation
-  const refreshValidation = () => {
-    console.log('Manually refreshing validation...');
-    if (csvRows.length > 0) {
-      validateAllRows(csvRows);
-    }
-  };
 
-  // Function to check if a specific row has validation errors
-  const hasRowValidationErrors = (rowIndex: number): boolean => {
-    return rowErrors[rowIndex] && Object.keys(rowErrors[rowIndex]).length > 0;
-  };
-
-  // Function to get validation errors for a specific row
-  const getRowValidationErrors = (rowIndex: number): Record<string, string> => {
-    return rowErrors[rowIndex] || {};
-  };
-
-  // Function to clear all validation errors
-  const clearAllValidationErrors = () => {
-    console.log('Clearing all validation errors...');
-    setRowErrors({});
-  };
-
-  // Function to force validation refresh
-  const forceValidationRefresh = () => {
-    console.log('Forcing validation refresh...');
-    if (csvRows.length > 0) {
-      // Clear existing errors first
-      setRowErrors({});
-      // Then re-validate
-      setTimeout(() => validateAllRows(csvRows), 100);
-    }
-  };
 
   // Function to check if validation state is consistent
   const isValidationStateConsistent = (): boolean => {
@@ -682,30 +719,7 @@ const EmissionFactorCSVManager: React.FC<EmissionFactorCSVManagerProps> = ({ onI
     return true;
   };
 
-  // Function to manually validate a specific row
-  const validateSpecificRow = (rowIndex: number) => {
-    if (rowIndex >= 0 && rowIndex < csvRows.length) {
-      const row = csvRows[rowIndex];
-      console.log(`Manually validating row ${rowIndex}:`, row);
-      
-      const errors = validateRow(row);
-      console.log(`Row ${rowIndex} validation result:`, errors);
-      
-      if (Object.keys(errors).length > 0) {
-        setRowErrors(prev => ({ ...prev, [rowIndex]: errors }));
-      } else {
-        // Clear errors for this row if it's valid
-        setRowErrors(prev => {
-          const newErrors = { ...prev };
-          delete newErrors[rowIndex];
-          return newErrors;
-        });
-      }
-      
-      return errors;
-    }
-    return {};
-  };
+
 
   // Function to ensure validation state is clean and consistent
   const ensureCleanValidationState = () => {
@@ -864,12 +878,15 @@ const EmissionFactorCSVManager: React.FC<EmissionFactorCSVManagerProps> = ({ onI
         >
           {t('csvManager.downloadTemplate')}
         </button>
+
       </div>
       <div
         className="csv-dropzone"
         onDrop={handleDrop}
         onDragOver={handleDragOver}
-        onClick={() => fileInputRef.current?.click()}
+        onClick={() => {
+          triggerFileInput();
+        }}
         tabIndex={0}
         aria-label="Upload CSV file"
       >
@@ -879,10 +896,24 @@ const EmissionFactorCSVManager: React.FC<EmissionFactorCSVManagerProps> = ({ onI
           ref={fileInputRef}
           style={{ display: 'none' }}
           onChange={handleFileChange}
-          
+          onInput={handleFileInput}
+          onClick={(e) => {
+            // Prevent the click event from bubbling up to the dropzone
+            e.stopPropagation();
+          }}
+
         />
         <span>{t('csvManager.dragDropText')} </span>
-        <a href="" onClick={() => fileInputRef.current?.click()}>{t('csvManager.clickToSelect')}</a>
+        <a 
+          href="#" 
+          onClick={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            triggerFileInput();
+          }}
+        >
+          {t('csvManager.clickToSelect')}
+        </a>
       </div>
       {errorMsg && <div className="csv-error">{errorMsg}</div>}
       
