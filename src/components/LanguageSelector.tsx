@@ -3,7 +3,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useI18n } from '@/i18n/provider';
 import { locales, localeNames, type Locale } from '@/i18n/config';
-import './LanguageSelector.css';
 
 const LanguageSelector: React.FC = () => {
   const { locale, setLocale } = useI18n();
@@ -39,6 +38,7 @@ const LanguageSelector: React.FC = () => {
         aria-expanded={isOpen}
         aria-haspopup="listbox"
       >
+        <span className="language-icon">🌐</span>
         <span className="language-name">{currentLanguage}</span>
         <span className={`language-arrow ${isOpen ? 'open' : ''}`}>▼</span>
       </button>
